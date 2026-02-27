@@ -1,0 +1,10 @@
+aws_region      = "us-east-2"
+project_name    = "portfolio"
+environment     = "prod"
+domain_name     = "matthewkolnicki.com"
+route53_zone_id = "Z123456789ABCDEFG"
+ssm_env_parameter_name = "/portfolio/prod/runtime-env"
+
+tags = {
+  Owner = "matthewkolnicki"
+}
