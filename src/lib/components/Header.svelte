@@ -42,7 +42,7 @@
 	}
 </script>
 
-<header class="masthead container">
+<header class="masthead">
 	<div class="masthead-title-row">
 		<h1 class="masthead-title">Matthew Kolnicki</h1>
 		<div class="masthead-actions">
@@ -96,20 +96,26 @@
 
 <style>
 	.masthead {
+		max-width: 100%;
+		padding-inline: clamp(1rem, 4vw, 3rem);
 		padding-top: var(--spacing-md);
 		padding-bottom: var(--spacing-md);
 		text-align: center;
 	}
 
 	.masthead-title-row {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
+		--actions-space: clamp(6rem, 14vw, 9rem);
+		position: relative;
+		display: flex;
+		justify-content: center;
 		align-items: center;
+		width: 100%;
+		padding-inline: var(--actions-space);
 		margin-bottom: var(--spacing-sm);
+		min-height: 2.25rem;
 	}
 
 	.masthead-title {
-		grid-column: 2;
 		font-size: clamp(1.7rem, 2.8vw, 2.45rem);
 		font-weight: 400;
 		margin: 0;
@@ -118,8 +124,10 @@
 	}
 
 	.masthead-actions {
-		grid-column: 3;
-		justify-self: end;
+		position: absolute;
+		right: 0;
+		top: 50%;
+		transform: translateY(-50%);
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-xs);
@@ -191,13 +199,19 @@
 
 	@media (max-width: 600px) {
 		.masthead-title-row {
+			display: grid;
 			grid-template-columns: 1fr;
+			width: auto;
+			padding-inline: 0;
 			gap: var(--spacing-xs);
+			min-height: 0;
 		}
 		.masthead-title {
 			grid-column: 1;
 		}
 		.masthead-actions {
+			position: static;
+			transform: none;
 			grid-column: 1;
 			justify-self: center;
 		}

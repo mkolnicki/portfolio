@@ -116,111 +116,108 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <main class="container projects-page">
-	<header class="projects-header thick-bottom">
-		<h2 class="page-title">Selected Work</h2>
-		<p class="page-deck text-muted">
-			Live data from <a
-				href={`https://github.com/${data.username}`}
-				target="_blank"
-				rel="noreferrer">@{data.username}</a
-			>. The work reflects my focus on backend systems, data pipelines, and practical AI integration.
-			Hover to preview a project, or click to open the full README.
-		</p>
-	</header>
+	<section class="projects-rail">
+		<header class="projects-header thick-bottom">
+			<h2 class="page-title">Selected Work</h2>
+			<p class="page-deck text-muted">
+				Live data from <a
+					href={`https://github.com/${data.username}`}
+					target="_blank"
+					rel="noreferrer">@{data.username}</a
+				>. The work reflects my focus on backend systems, data pipelines, and practical AI integration.
+				Hover to preview a project, or click to open the full README.
+			</p>
+		</header>
+		{#if data.projects.length === 0}
+			<p>No projects are currently available.</p>
+		{:else}
+			<ul class="toc-list">
+				{#each data.projects as project, index (project.id)}
+					<li class="toc-item">
+						<button
+							class="toc-link"
+							type="button"
+							onmouseenter={() => queueHoverPreview(project)}
+							onmouseleave={() => {
+								cancelHoverPreview();
+								schedulePreviewClose(project);
+							}}
+							onblur={() => {
+								cancelHoverPreview();
+								clearPreview(project);
+							}}
+							onclick={() => openReadme(project)}
+							aria-label={`Open README for ${project.name}`}
+						>
+							<div class="toc-row">
+								<span class="toc-title">{project.name}</span>
+								<span class="toc-dots"></span>
+								<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
+							</div>
+							<div class="toc-meta">
+								<p class="toc-desc text-muted">{project.description}</p>
+							</div>
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</section>
 
-	{#if data.projects.length === 0}
-		<p>No projects are currently available.</p>
-	{:else}
-		<div class="projects-layout">
-			<section class="projects-rail">
-				<ul class="toc-list">
-					{#each data.projects as project, index (project.id)}
-						<li class="toc-item">
-							<button
-								class="toc-link"
-								type="button"
-								onmouseenter={() => queueHoverPreview(project)}
-								onmouseleave={() => {
-									cancelHoverPreview();
-									schedulePreviewClose(project);
-								}}
-								onblur={() => {
-									cancelHoverPreview();
-									clearPreview(project);
-								}}
-								onclick={() => openReadme(project)}
-								aria-label={`Open README for ${project.name}`}
-							>
-								<div class="toc-row">
-									<span class="toc-title">{project.name}</span>
-									<span class="toc-dots"></span>
-									<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
-								</div>
-								<div class="toc-meta">
-									<p class="toc-desc text-muted">{project.description}</p>
-								</div>
-							</button>
-						</li>
-					{/each}
-				</ul>
+	<aside class="data-desk">
+		<section class="data-card">
+			<p class="kicker uppercase font-sans text-small">Code Metrics</p>
+			<div class="metric-grid font-sans">
+				<div class="metric">
+					<span class="metric-label text-small">Projects</span>
+					<strong>{wholeNumber.format(data.metrics.totalProjects)}</strong>
+				</div>
+				<div class="metric">
+					<span class="metric-label text-small">Stars</span>
+					<strong>{compactNumber.format(data.metrics.totalStars)}</strong>
+				</div>
+				<div class="metric">
+					<span class="metric-label text-small">Forks</span>
+					<strong>{compactNumber.format(data.metrics.totalForks)}</strong>
+				</div>
+				<div class="metric">
+					<span class="metric-label text-small">Active (30d)</span>
+					<strong>{wholeNumber.format(data.metrics.activeLast30Days)}</strong>
+				</div>
+			</div>
+			<p class="metric-footnote text-small text-muted">
+				Top language: {data.metrics.topLanguage ?? 'N/A'}
+			</p>
+		</section>
+
+		<section class="data-card">
+			<p class="kicker uppercase font-sans text-small">Commit Activity</p>
+			<svg
+				class="commit-chart"
+				viewBox={`0 0 ${sparklineWidth} ${sparklineHeight}`}
+				role="img"
+				aria-label="Weekly commit activity over the last eight weeks"
+			>
+				<polyline class="commit-line" points={sparklinePoints}></polyline>
+				<polygon class="commit-area" points={sparklineAreaPoints}></polygon>
+			</svg>
+			<p class="metric-footnote text-small text-muted">
+				{wholeNumber.format(data.metrics.totalCommits8Weeks)} commits in the last 8 weeks
+			</p>
+		</section>
+
+		{#if data.featuredProject}
+			<section class="data-card featured-project">
+				<p class="kicker uppercase font-sans text-small">Featured Project</p>
+				<h3>{data.featuredProject.name}</h3>
+				<p class="text-muted">{data.featuredProject.description}</p>
+				<div class="featured-meta font-sans text-small">
+					<span>{wholeNumber.format(data.featuredProject.stars)} stars</span>
+					<span>{wholeNumber.format(data.featuredProject.forks)} forks</span>
+				</div>
 			</section>
-
-			<aside class="data-desk">
-				<section class="data-card">
-					<p class="kicker uppercase font-sans text-small">Code Metrics</p>
-					<div class="metric-grid font-sans">
-						<div class="metric">
-							<span class="metric-label text-small">Projects</span>
-							<strong>{wholeNumber.format(data.metrics.totalProjects)}</strong>
-						</div>
-						<div class="metric">
-							<span class="metric-label text-small">Stars</span>
-							<strong>{compactNumber.format(data.metrics.totalStars)}</strong>
-						</div>
-						<div class="metric">
-							<span class="metric-label text-small">Forks</span>
-							<strong>{compactNumber.format(data.metrics.totalForks)}</strong>
-						</div>
-						<div class="metric">
-							<span class="metric-label text-small">Active (30d)</span>
-							<strong>{wholeNumber.format(data.metrics.activeLast30Days)}</strong>
-						</div>
-					</div>
-					<p class="metric-footnote text-small text-muted">
-						Top language: {data.metrics.topLanguage ?? 'N/A'}
-					</p>
-				</section>
-
-				<section class="data-card">
-					<p class="kicker uppercase font-sans text-small">Commit Activity</p>
-					<svg
-						class="commit-chart"
-						viewBox={`0 0 ${sparklineWidth} ${sparklineHeight}`}
-						role="img"
-						aria-label="Weekly commit activity over the last eight weeks"
-					>
-						<polyline class="commit-line" points={sparklinePoints}></polyline>
-						<polygon class="commit-area" points={sparklineAreaPoints}></polygon>
-					</svg>
-					<p class="metric-footnote text-small text-muted">
-						{wholeNumber.format(data.metrics.totalCommits8Weeks)} commits in the last 8 weeks
-					</p>
-				</section>
-
-				{#if data.featuredProject}
-					<section class="data-card featured-project">
-						<p class="kicker uppercase font-sans text-small">Featured Project</p>
-						<h3>{data.featuredProject.name}</h3>
-						<p class="text-muted">{data.featuredProject.description}</p>
-						<div class="featured-meta font-sans text-small">
-							<span>{wholeNumber.format(data.featuredProject.stars)} stars</span>
-							<span>{wholeNumber.format(data.featuredProject.forks)} forks</span>
-						</div>
-					</section>
-				{/if}
-			</aside>
-		</div>
-	{/if}
+		{/if}
+	</aside>
 
 	{#if previewProject && !activeProject}
 		<div
@@ -302,6 +299,13 @@
 </main>
 
 <style>
+	.projects-page {
+		display: grid;
+		grid-template-columns: minmax(0, 1.75fr) minmax(270px, 1fr);
+		gap: var(--spacing-lg);
+		align-items: start;
+	}
+
 	.projects-header {
 		padding-bottom: var(--spacing-md);
 		margin-bottom: var(--spacing-lg);
@@ -331,13 +335,6 @@
 		display: grid;
 		gap: var(--spacing-lg);
 		max-width: 980px;
-	}
-
-	.projects-layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1.75fr) minmax(270px, 1fr);
-		gap: var(--spacing-lg);
-		align-items: start;
 	}
 
 	.projects-rail {
@@ -686,7 +683,7 @@
 	}
 
 	@media (max-width: 900px) {
-		.projects-layout {
+		.projects-page {
 			grid-template-columns: 1fr;
 		}
 

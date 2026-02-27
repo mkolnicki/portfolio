@@ -15,97 +15,99 @@
 </script>
 
 <main class="container blog-page">
-	<header class="blog-header thick-bottom">
-		<h2 class="page-title">Engineering Notes</h2>
-		<p class="page-deck text-muted">
-			Writing on backend engineering, data systems, and practical AI implementation. Published from
-			Sanity Studio without redeploying the site.
-		</p>
-	</header>
+	<section class="blog-rail">
+		<header class="blog-header thick-bottom">
+			<h2 class="page-title">Engineering Notes</h2>
+			<p class="page-deck text-muted">
+				Writing on backend engineering, data systems, and practical AI implementation. Published from
+				Sanity Studio without redeploying the site.
+			</p>
+		</header>
 
-	{#if data.authError}
-		<p class="auth-warning font-sans text-small">
-			Blog is connected but blocked by Sanity auth. Add <code>SANITY_API_READ_TOKEN</code> to your app
-			env and restart the dev server.
-		</p>
-	{/if}
+		{#if data.authError}
+			<p class="auth-warning font-sans text-small">
+				Blog is connected but blocked by Sanity auth. Add <code>SANITY_API_READ_TOKEN</code> to your app
+				env and restart the dev server.
+			</p>
+		{/if}
 
-	<div class="blog-layout">
-		<section class="blog-rail">
-			{#if data.posts.length === 0}
-				<p>No blog posts published yet.</p>
-			{:else}
-				<ul class="toc-list">
-					{#each data.posts as post, index (post.slug)}
-						<li class="toc-item">
-							<a class="toc-link" href={resolve('/blog/[slug]', { slug: post.slug })}>
-								<div class="toc-row">
-									<span class="toc-title">{post.title}</span>
-									<span class="toc-dots"></span>
-									<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
-								</div>
-								<div class="toc-meta text-muted">
-									<p class="toc-desc">{post.excerpt}</p>
-									<span class="toc-date font-sans text-small">
-										{fullDate.format(new Date(post.publishedAt))}
-										{#if post.readingMinutes}
-											· {post.readingMinutes} min read
-										{/if}
-									</span>
-								</div>
-							</a>
-						</li>
-					{/each}
-				</ul>
+		{#if data.posts.length === 0}
+			<p>No blog posts published yet.</p>
+		{:else}
+			<ul class="toc-list">
+				{#each data.posts as post, index (post.slug)}
+					<li class="toc-item">
+						<a class="toc-link" href={resolve('/blog/[slug]', { slug: post.slug })}>
+							<div class="toc-row">
+								<span class="toc-title">{post.title}</span>
+								<span class="toc-dots"></span>
+								<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
+							</div>
+							<div class="toc-meta text-muted">
+								<p class="toc-desc">{post.excerpt}</p>
+								<span class="toc-date font-sans text-small">
+									{fullDate.format(new Date(post.publishedAt))}
+									{#if post.readingMinutes}
+										· {post.readingMinutes} min read
+									{/if}
+								</span>
+							</div>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</section>
+
+	<aside class="blog-metrics">
+		<section class="metrics-card">
+			<p class="kicker uppercase font-sans text-small">Publishing Stats</p>
+			<div class="metrics-grid font-sans">
+				<div class="metric">
+					<span class="text-small">Total Posts</span>
+					<strong>{data.metrics.totalPosts}</strong>
+				</div>
+				<div class="metric">
+					<span class="text-small">Featured</span>
+					<strong>{data.metrics.featuredPosts}</strong>
+				</div>
+			</div>
+			{#if data.metrics.latestPublishedAt}
+				<p class="metrics-note text-small text-muted">
+					Latest post: {fullDate.format(new Date(data.metrics.latestPublishedAt))}
+				</p>
 			{/if}
 		</section>
 
-		<aside class="blog-metrics">
-			<section class="metrics-card">
-				<p class="kicker uppercase font-sans text-small">Publishing Stats</p>
-				<div class="metrics-grid font-sans">
-					<div class="metric">
-						<span class="text-small">Total Posts</span>
-						<strong>{data.metrics.totalPosts}</strong>
-					</div>
-					<div class="metric">
-						<span class="text-small">Featured</span>
-						<strong>{data.metrics.featuredPosts}</strong>
-					</div>
-				</div>
-				{#if data.metrics.latestPublishedAt}
-					<p class="metrics-note text-small text-muted">
-						Latest post: {fullDate.format(new Date(data.metrics.latestPublishedAt))}
-					</p>
-				{/if}
-			</section>
-
-			<section class="metrics-card">
-				<p class="kicker uppercase font-sans text-small">Posts / Month</p>
-				<div class="month-chart font-sans">
-					{#each monthlyCounts as bucket (bucket.label)}
-						<div class="month-row">
-							<span class="month-label text-small text-muted">{bucket.label}</span>
-							<div class="month-bar-track">
-								<div
-									class="month-bar"
-									style={`width: ${Math.max((bucket.count / maxMonthlyCount) * 100, bucket.count > 0 ? 12 : 0)}%`}
-								></div>
-							</div>
-							<span class="month-count text-small">{bucket.count}</span>
+		<section class="metrics-card">
+			<p class="kicker uppercase font-sans text-small">Posts / Month</p>
+			<div class="month-chart font-sans">
+				{#each monthlyCounts as bucket (bucket.label)}
+					<div class="month-row">
+						<span class="month-label text-small text-muted">{bucket.label}</span>
+						<div class="month-bar-track">
+							<div
+								class="month-bar"
+								style={`width: ${Math.max((bucket.count / maxMonthlyCount) * 100, bucket.count > 0 ? 12 : 0)}%`}
+							></div>
 						</div>
-					{/each}
-				</div>
-				<p class="metrics-note text-small text-muted">
-					Window ends {compactDate.format(new Date())}
-				</p>
-			</section>
-		</aside>
-	</div>
+						<span class="month-count text-small">{bucket.count}</span>
+					</div>
+				{/each}
+			</div>
+			<p class="metrics-note text-small text-muted">
+				Window ends {compactDate.format(new Date())}
+			</p>
+		</section>
+	</aside>
 </main>
 
 <style>
 	.blog-page {
+		display: grid;
+		grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+		gap: var(--spacing-lg);
+		align-items: start;
 		margin-bottom: var(--spacing-xl);
 	}
 
@@ -129,13 +131,6 @@
 
 	.kicker {
 		margin-bottom: var(--spacing-xs);
-	}
-
-	.blog-layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
-		gap: var(--spacing-lg);
-		align-items: start;
 	}
 
 	.auth-warning {
@@ -293,7 +288,7 @@
 	}
 
 	@media (max-width: 900px) {
-		.blog-layout {
+		.blog-page {
 			grid-template-columns: 1fr;
 		}
 

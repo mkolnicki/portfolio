@@ -1,14 +1,12 @@
 <main class="container about-page">
-	<header class="about-header thick-bottom">
-		<h2 class="page-title">Backend Developer and Data Engineer</h2>
-		<p class="page-deck text-muted">
-			I’m most energized by technology, developer experience, and deep technical exploration.
-		</p>
-	</header>
-
-	<section class="about-layout">
-		<article class="about-story">
-			<div class="story-body hairline-top">
+	<article class="about-story">
+		<header class="about-header thick-bottom">
+			<h2 class="page-title">Backend Developer and Data Engineer</h2>
+			<p class="page-deck text-muted">
+				I’m most energized by technology, developer experience, and deep technical exploration.
+			</p>
+		</header>
+		<div class="story-body hairline-top">
 				<p>
 					At Digital Hands, I work across backend development, data engineering, and cloud
 					infrastructure. I enjoy moving between systems work and product-facing problems, especially
@@ -27,37 +25,40 @@
 					I like going deep technically, learning new systems end-to-end, and then distilling that
 					complexity into solutions that are clean, reliable, and maintainable.
 				</p>
-			</div>
-		</article>
+		</div>
+	</article>
 
-		<aside class="about-briefings hairline-left">
-			<h3 class="uppercase font-sans text-small hairline-bottom">Quick Facts</h3>
-			<div class="briefing-item hairline-bottom">
-				<h4>Current Role</h4>
-				<p class="text-small text-muted">
-					Backend Developer & Data Engineer at Digital Hands (Feb 2023 - Present).
-				</p>
-			</div>
-			<div class="briefing-item hairline-bottom">
-				<h4>Core Technologies</h4>
-				<p class="text-small text-muted">
-					Python, SQL, FastAPI, SQLAlchemy, PostgreSQL/Aurora, BigQuery, Redis, OpenSearch, AWS,
-					GCP, and GitHub Actions.
-				</p>
-			</div>
-			<div class="briefing-item">
-				<h4>Specialties</h4>
-				<p class="text-small text-muted">
-					Developer experience, LLM integration, API reliability, ETL design, and cloud architecture.
-				</p>
-			</div>
-		</aside>
-	</section>
+	<aside class="about-briefings hairline-left">
+		<h3 class="uppercase font-sans text-small hairline-bottom">Quick Facts</h3>
+		<div class="briefing-item hairline-bottom">
+			<h4>Current Role</h4>
+			<p class="text-small text-muted">
+				Backend Developer & Data Engineer at Digital Hands (Feb 2023 - Present).
+			</p>
+		</div>
+		<div class="briefing-item hairline-bottom">
+			<h4>Core Technologies</h4>
+			<p class="text-small text-muted">
+				Python, SQL, FastAPI, SQLAlchemy, PostgreSQL/Aurora, BigQuery, Redis, OpenSearch, AWS, GCP,
+				and GitHub Actions.
+			</p>
+		</div>
+		<div class="briefing-item">
+			<h4>Specialties</h4>
+			<p class="text-small text-muted">
+				Developer experience, LLM integration, API reliability, ETL design, and cloud architecture.
+			</p>
+		</div>
+	</aside>
 </main>
 
 <style>
 	.about-page {
+		display: grid;
+		grid-template-columns: 3fr 1fr;
+		gap: var(--spacing-lg);
 		margin-bottom: var(--spacing-xl);
+		align-items: start;
 	}
 
 	.about-header {
@@ -80,13 +81,6 @@
 		font-size: var(--step-0);
 		line-height: var(--leading-copy);
 		max-width: 68ch;
-	}
-
-	.about-layout {
-		display: grid;
-		grid-template-columns: 3fr 1fr;
-		gap: var(--spacing-lg);
-		align-items: start;
 	}
 
 	.story-body {
@@ -145,7 +139,7 @@
 	}
 
 	@media (max-width: 768px) {
-		.about-layout {
+		.about-page {
 			grid-template-columns: 1fr;
 		}
 
