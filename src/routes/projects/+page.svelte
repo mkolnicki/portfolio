@@ -430,6 +430,7 @@
 		background: transparent;
 		border: 0;
 		color: inherit;
+		font: inherit;
 		padding: var(--spacing-xs) 0;
 		cursor: pointer;
 		display: flex;
