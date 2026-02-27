@@ -302,10 +302,6 @@
 </main>
 
 <style>
-	.projects-page {
-		margin-bottom: var(--spacing-xl);
-	}
-
 	.projects-header {
 		padding-bottom: var(--spacing-md);
 		margin-bottom: var(--spacing-lg);
