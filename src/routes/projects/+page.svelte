@@ -117,9 +117,8 @@
 
 <main class="container projects-page">
 	<header class="projects-header thick-bottom">
-		<p class="kicker uppercase font-sans text-small">Projects</p>
-		<h2>Selected Work</h2>
-		<p class="text-muted">
+		<h2 class="page-title">Selected Work</h2>
+		<p class="page-deck text-muted">
 			Live data from <a
 				href={`https://github.com/${data.username}`}
 				target="_blank"
@@ -134,11 +133,11 @@
 	{:else}
 		<div class="projects-layout">
 			<section class="projects-rail">
-				<ul class="project-list">
+				<ul class="toc-list">
 					{#each data.projects as project, index (project.id)}
-						<li class="project-item">
+						<li class="toc-item">
 							<button
-								class="project-card"
+								class="toc-link"
 								type="button"
 								onmouseenter={() => queueHoverPreview(project)}
 								onmouseleave={() => {
@@ -152,12 +151,13 @@
 								onclick={() => openReadme(project)}
 								aria-label={`Open README for ${project.name}`}
 							>
-								<span class="project-index font-sans text-small"
-									>{String(index + 1).padStart(2, '0')}</span
-								>
-								<div class="project-summary">
-									<h3>{project.name}</h3>
-									<p class="text-muted">{project.description}</p>
+								<div class="toc-row">
+									<span class="toc-title">{project.name}</span>
+									<span class="toc-dots"></span>
+									<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
+								</div>
+								<div class="toc-meta">
+									<p class="toc-desc text-muted">{project.description}</p>
 								</div>
 							</button>
 						</li>
@@ -311,17 +311,25 @@
 		margin-bottom: var(--spacing-xs);
 	}
 
-	.projects-header h2 {
+	.page-title {
 		font-size: var(--step-4);
+		line-height: var(--leading-tight);
 		margin-bottom: var(--spacing-sm);
 		text-wrap: balance;
 	}
 
-	.project-list {
+	.page-deck {
+		font-size: var(--step-0);
+		line-height: var(--leading-copy);
+		max-width: 68ch;
+	}
+
+	.toc-list {
 		list-style: none;
 		padding: 0;
 		margin: 0;
 		display: grid;
+		gap: var(--spacing-lg);
 		max-width: 980px;
 	}
 
@@ -419,48 +427,77 @@
 		gap: var(--spacing-sm);
 	}
 
-	.project-item {
-		border-top: var(--hairline);
-		border-bottom: var(--hairline);
-		margin-top: -1px;
-		background:
-			linear-gradient(
-				to right,
-				color-mix(in srgb, var(--text-color) 5%, transparent) 0,
-				color-mix(in srgb, var(--text-color) 5%, transparent) 84px,
-				transparent 84px
-			),
-			var(--surface-1);
-	}
-
-	.project-index {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 100%;
-		padding: var(--spacing-sm) var(--spacing-xs);
-		font-weight: 600;
-		letter-spacing: 0.12em;
-		opacity: 0.85;
-		border-right: var(--hairline);
-	}
-
-	.project-summary {
-		display: grid;
-		grid-template-columns: 1fr;
+	.toc-link {
+		width: 100%;
+		text-align: left;
+		background: transparent;
+		border: 0;
+		color: inherit;
+		padding: var(--spacing-xs) 0;
+		cursor: pointer;
+		display: flex;
+		flex-direction: column;
 		gap: var(--spacing-xs);
-		align-items: start;
 	}
 
-	.project-summary h3 {
-		margin: 0;
+	.toc-link:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 6px;
+	}
+
+	.toc-row {
+		display: flex;
+		align-items: baseline;
+		width: 100%;
+	}
+
+	.toc-title {
 		font-size: var(--step-2);
-		line-height: 1.05;
+		font-weight: 500;
+		line-height: 1.1;
+		transition: color var(--duration-fast) var(--ease-standard);
 	}
 
-	.project-summary p {
+	.toc-dots {
+		flex-grow: 1;
+		border-bottom: 2px dotted color-mix(in srgb, var(--border-color) 30%, transparent);
+		margin: 0 0.5rem;
+		position: relative;
+		top: -0.2em;
+		transition: border-bottom-color var(--duration-fast) var(--ease-standard);
+	}
+
+	.toc-number {
+		font-size: var(--step-0);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.05em;
+		color: var(--muted-text);
+		transition: color var(--duration-fast) var(--ease-standard);
+	}
+
+	.toc-meta {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.toc-desc {
 		margin: 0;
-		max-width: 64ch;
+		max-width: 68ch;
+		font-size: var(--step-0);
+		line-height: var(--leading-copy);
+	}
+
+	.toc-link:hover .toc-title {
+		color: var(--accent);
+	}
+
+	.toc-link:hover .toc-dots {
+		border-bottom-color: var(--border-color);
+	}
+
+	.toc-link:hover .toc-number {
+		color: var(--text-color);
 	}
 
 	.project-links {
@@ -648,43 +685,6 @@
 		background: color-mix(in srgb, var(--bg-color) 92%, var(--text-color));
 	}
 
-	.project-card:hover {
-		background: color-mix(in srgb, var(--surface-1) 82%, var(--accent) 18%);
-	}
-
-	.project-card {
-		width: 100%;
-		text-align: left;
-		background: transparent;
-		border: 0;
-		color: inherit;
-		padding: 0;
-		cursor: pointer;
-		display: grid;
-		grid-template-columns: 84px 1fr;
-		align-items: stretch;
-		gap: 0;
-	}
-
-	.project-card:focus-visible {
-		outline: 2px solid var(--focus-ring);
-		outline-offset: -3px;
-	}
-
-	.project-card:hover .project-summary h3 {
-		text-decoration: underline;
-		text-decoration-thickness: 1px;
-		text-underline-offset: 5px;
-	}
-
-	.project-card:hover .project-summary {
-		background: color-mix(in srgb, var(--surface-1) 82%, var(--accent) 18%);
-	}
-
-	.project-summary {
-		padding: 0.9rem 1.1rem;
-	}
-
 	@media (max-width: 900px) {
 		.projects-layout {
 			grid-template-columns: 1fr;
@@ -694,12 +694,8 @@
 			position: static;
 		}
 
-		.project-list {
+		.toc-list {
 			max-width: 100%;
-		}
-
-		.project-card {
-			grid-template-columns: 68px 1fr;
 		}
 
 		.preview-panel {

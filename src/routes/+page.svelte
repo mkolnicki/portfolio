@@ -4,8 +4,8 @@
 
 <main class="container front-page">
 	<article class="lead-story">
-		<h2 class="headline">I love building systems and digging deep into how they work.</h2>
-		<p class="deck text-muted">
+		<h2 class="page-title">I love building systems and digging deep into how they work.</h2>
+		<p class="page-deck text-muted">
 			I’m a backend developer and data engineer focused on developer experience, practical AI, and the
 			kind of engineering that makes teams faster and calmer.
 		</p>
@@ -82,20 +82,19 @@
 		box-shadow: var(--shadow-sm);
 	}
 
-	.headline {
-		font-size: var(--step-5);
-		line-height: 1.05;
+	.page-title {
+		font-size: var(--step-4);
+		line-height: var(--leading-tight);
 		margin-bottom: var(--spacing-sm);
-		max-width: 20ch;
+		max-width: 18ch;
 		text-wrap: balance;
 	}
 
-	.deck {
-		font-size: var(--step-1);
-		font-style: italic;
+	.page-deck {
+		font-size: var(--step-0);
+		line-height: var(--leading-copy);
 		margin-bottom: var(--spacing-md);
 		max-width: 68ch;
-		color: color-mix(in srgb, var(--text-color) 78%, var(--accent) 22%);
 	}
 
 	.story-content {

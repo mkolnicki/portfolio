@@ -16,9 +16,8 @@
 
 <main class="container blog-page">
 	<header class="blog-header thick-bottom">
-		<p class="kicker uppercase font-sans text-small">Blog</p>
-		<h2>Engineering Notes</h2>
-		<p class="text-muted">
+		<h2 class="page-title">Engineering Notes</h2>
+		<p class="page-deck text-muted">
 			Writing on backend engineering, data systems, and practical AI implementation. Published from
 			Sanity Studio without redeploying the site.
 		</p>
@@ -36,22 +35,23 @@
 			{#if data.posts.length === 0}
 				<p>No blog posts published yet.</p>
 			{:else}
-				<ul class="post-list">
+				<ul class="toc-list">
 					{#each data.posts as post, index (post.slug)}
-						<li class="post-item">
-							<a class="post-card" href={resolve('/blog/[slug]', { slug: post.slug })}>
-								<span class="post-index font-sans text-small"
-									>{String(index + 1).padStart(2, '0')}</span
-								>
-								<div class="post-summary">
-									<h3>{post.title}</h3>
-									<p class="text-muted">{post.excerpt}</p>
-									<p class="post-meta font-sans text-small text-muted">
+						<li class="toc-item">
+							<a class="toc-link" href={resolve('/blog/[slug]', { slug: post.slug })}>
+								<div class="toc-row">
+									<span class="toc-title">{post.title}</span>
+									<span class="toc-dots"></span>
+									<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
+								</div>
+								<div class="toc-meta text-muted">
+									<p class="toc-desc">{post.excerpt}</p>
+									<span class="toc-date font-sans text-small">
 										{fullDate.format(new Date(post.publishedAt))}
 										{#if post.readingMinutes}
 											· {post.readingMinutes} min read
 										{/if}
-									</p>
+									</span>
 								</div>
 							</a>
 						</li>
@@ -114,10 +114,17 @@
 		margin-bottom: var(--spacing-lg);
 	}
 
-	.blog-header h2 {
+	.page-title {
 		font-size: var(--step-4);
+		line-height: var(--leading-tight);
 		margin-bottom: var(--spacing-sm);
 		text-wrap: balance;
+	}
+
+	.page-deck {
+		font-size: var(--step-0);
+		line-height: var(--leading-copy);
+		max-width: 68ch;
 	}
 
 	.kicker {
@@ -203,68 +210,86 @@
 		background: color-mix(in srgb, var(--accent) 72%, var(--text-color));
 	}
 
-	.post-list {
+	.toc-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		border-top: var(--hairline);
-	}
-
-	.post-item {
-		border-bottom: var(--hairline);
-		background:
-			linear-gradient(
-				to right,
-				color-mix(in srgb, var(--text-color) 5%, transparent) 0,
-				color-mix(in srgb, var(--text-color) 5%, transparent) 84px,
-				transparent 84px
-			),
-			var(--surface-1);
-	}
-
-	.post-card {
 		display: grid;
-		grid-template-columns: 84px 1fr;
-		gap: 0;
+		gap: var(--spacing-lg);
+	}
+
+	.toc-link {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
 		color: inherit;
 		text-decoration: none;
+		padding: var(--spacing-xs) 0;
+		outline: none;
 	}
 
-	.post-card:hover .post-summary h3 {
-		text-decoration: underline;
-		text-decoration-thickness: 1px;
-		text-underline-offset: 4px;
-		text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent);
+	.toc-link:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 6px;
 	}
 
-	.post-card:hover .post-summary {
-		background: color-mix(in srgb, var(--surface-1) 82%, var(--accent) 18%);
+	.toc-row {
+		display: flex;
+		align-items: baseline;
+		width: 100%;
 	}
 
-	.post-index {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: var(--spacing-sm) var(--spacing-xs);
-		border-right: var(--hairline);
-		letter-spacing: 0.1em;
-	}
-
-	.post-summary {
-		padding: 0.9rem 1.1rem;
-	}
-
-	.post-summary h3 {
-		margin: 0 0 0.35rem;
+	.toc-title {
 		font-size: var(--step-2);
+		font-weight: 500;
+		line-height: 1.1;
+		transition: color var(--duration-fast) var(--ease-standard);
 	}
 
-	.post-summary p {
+	.toc-dots {
+		flex-grow: 1;
+		border-bottom: 2px dotted color-mix(in srgb, var(--border-color) 30%, transparent);
+		margin: 0 0.5rem;
+		position: relative;
+		top: -0.2em;
+		transition: border-bottom-color var(--duration-fast) var(--ease-standard);
+	}
+
+	.toc-number {
+		font-size: var(--step-0);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.05em;
+		color: var(--muted-text);
+		transition: color var(--duration-fast) var(--ease-standard);
+	}
+
+	.toc-meta {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.toc-desc {
+		margin: 0;
+		max-width: 68ch;
+		font-size: var(--step-0);
+		line-height: var(--leading-copy);
+	}
+
+	.toc-date {
 		margin: 0;
 	}
 
-	.post-meta {
-		margin-top: var(--spacing-xs);
+	.toc-link:hover .toc-title {
+		color: var(--accent);
+	}
+
+	.toc-link:hover .toc-dots {
+		border-bottom-color: var(--border-color);
+	}
+
+	.toc-link:hover .toc-number {
+		color: var(--text-color);
 	}
 
 	@media (max-width: 900px) {
@@ -274,10 +299,6 @@
 
 		.blog-metrics {
 			position: static;
-		}
-
-		.post-card {
-			grid-template-columns: 68px 1fr;
 		}
 	}
 </style>

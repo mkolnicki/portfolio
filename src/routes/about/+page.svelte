@@ -1,8 +1,7 @@
 <main class="container about-page">
 	<header class="about-header thick-bottom">
-		<p class="kicker uppercase font-sans text-small">About</p>
-		<h2>Backend Developer and Data Engineer</h2>
-		<p class="text-muted">
+		<h2 class="page-title">Backend Developer and Data Engineer</h2>
+		<p class="page-deck text-muted">
 			I’m most energized by technology, developer experience, and deep technical exploration.
 		</p>
 	</header>
@@ -33,20 +32,20 @@
 
 		<aside class="about-briefings hairline-left">
 			<h3 class="uppercase font-sans text-small hairline-bottom">Quick Facts</h3>
-			<div class="briefing hairline-bottom">
+			<div class="briefing-item hairline-bottom">
 				<h4>Current Role</h4>
 				<p class="text-small text-muted">
 					Backend Developer & Data Engineer at Digital Hands (Feb 2023 - Present).
 				</p>
 			</div>
-			<div class="briefing hairline-bottom">
+			<div class="briefing-item hairline-bottom">
 				<h4>Core Technologies</h4>
 				<p class="text-small text-muted">
 					Python, SQL, FastAPI, SQLAlchemy, PostgreSQL/Aurora, BigQuery, Redis, OpenSearch, AWS,
 					GCP, and GitHub Actions.
 				</p>
 			</div>
-			<div class="briefing">
+			<div class="briefing-item">
 				<h4>Specialties</h4>
 				<p class="text-small text-muted">
 					Developer experience, LLM integration, API reliability, ETL design, and cloud architecture.
@@ -66,15 +65,21 @@
 		margin-bottom: var(--spacing-lg);
 	}
 
-	.kicker {
-		margin-bottom: var(--spacing-xs);
+	.page-title {
+		font-size: var(--step-4);
+		line-height: var(--leading-tight);
+		margin-bottom: var(--spacing-sm);
+		text-wrap: balance;
 	}
 
-	.about-header h2 {
-		font-size: var(--step-4);
-		margin-bottom: var(--spacing-sm);
+	.about-header .page-title {
 		max-width: 18ch;
-		text-wrap: balance;
+	}
+
+	.page-deck {
+		font-size: var(--step-0);
+		line-height: var(--leading-copy);
+		max-width: 68ch;
 	}
 
 	.about-layout {
@@ -110,7 +115,7 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.briefing {
+	.briefing-item {
 		padding-bottom: var(--spacing-md);
 		margin-bottom: var(--spacing-md);
 		padding-inline: 0.65rem;
@@ -118,12 +123,19 @@
 		background: var(--surface-1);
 		border: var(--hairline);
 		box-shadow: var(--shadow-sm);
+		transition:
+			transform var(--duration-fast) var(--ease-standard),
+			box-shadow var(--duration-med) var(--ease-standard);
 	}
 
-	.briefing h4 {
+	.briefing-item h4 {
 		margin-bottom: var(--spacing-xs);
-		font-size: 1.05rem;
-		color: color-mix(in srgb, var(--text-color) 85%, var(--accent) 15%);
+		font-size: 1.125rem;
+	}
+
+	.briefing-item:hover {
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-md);
 	}
 
 	@media (max-width: 1024px) {
