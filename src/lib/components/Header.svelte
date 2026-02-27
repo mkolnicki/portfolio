@@ -73,7 +73,9 @@
 					{:else if theme === 'dark'}
 						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
 					{:else}
-						<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+						<path d="M12 22v-8"></path>
+						<path d="M5 12a7 7 0 0 1 7 7 7 7 0 0 1-7-7z"></path>
+						<path d="M19 8a7 7 0 0 0-7 7 7 7 0 0 0 7-7z"></path>
 					{/if}
 				</svg>
 				<span>{theme === 'light' ? 'Light' : theme === 'natural' ? 'Natural' : 'Dark'}</span>
