@@ -44,7 +44,6 @@
 								/>
 							</svg>
 						{/if}
-						<span class="font-sans text-small">{link.name}</span>
 					</a>
 				</li>
 			{/each}
