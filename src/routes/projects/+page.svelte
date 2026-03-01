@@ -39,6 +39,14 @@
 		},${sparklineHeight - sparklinePadding}`
 	);
 
+	function formatRepoName(name: string) {
+		return name
+			.split(/[-_\s]+/)
+			.filter(Boolean)
+			.map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+			.join(' ');
+	}
+
 	function openReadme(project: Project) {
 		cancelHoverPreview();
 		cancelPreviewClose();
@@ -124,12 +132,13 @@
 					href={`https://github.com/${data.username}`}
 					target="_blank"
 					rel="noreferrer">@{data.username}</a
-				>. The work reflects my focus on backend systems, data pipelines, and practical AI integration.
-				Hover to preview a project, or click to open the full README.
+				>. These projects reflect my focus on meaningful applications that scale with real-world
+				needs and improve the experience of the people using them. You can preview a project for a
+				quick overview and then open it to review the full README and technical context.
 			</p>
 		</header>
 		{#if data.projects.length === 0}
-			<p>No projects are currently available.</p>
+			<p>Projects are being refreshed right now. Please check back soon for updated write-ups.</p>
 		{:else}
 			<ul class="toc-list">
 				{#each data.projects as project, index (project.id)}
@@ -147,10 +156,10 @@
 								clearPreview(project);
 							}}
 							onclick={() => openReadme(project)}
-							aria-label={`Open README for ${project.name}`}
+							aria-label={`Open README for ${formatRepoName(project.name)}`}
 						>
 							<div class="toc-row">
-								<span class="toc-title">{project.name}</span>
+								<span class="toc-title">{formatRepoName(project.name)}</span>
 								<span class="toc-dots"></span>
 								<span class="toc-number font-sans">{String(index + 1).padStart(2, '0')}</span>
 							</div>
@@ -209,7 +218,7 @@
 		{#if data.featuredProject}
 			<section class="data-card featured-project">
 				<p class="kicker uppercase font-sans text-small">Featured Project</p>
-				<h3>{data.featuredProject.name}</h3>
+				<h3>{formatRepoName(data.featuredProject.name)}</h3>
 				<p class="text-muted">{data.featuredProject.description}</p>
 				<div class="featured-meta font-sans text-small">
 					<span>{wholeNumber.format(data.featuredProject.stars)} stars</span>
@@ -222,7 +231,7 @@
 	{#if previewProject && !activeProject}
 		<div
 			class="preview-panel hairline-left"
-			aria-label={`Preview for ${previewProject.name}`}
+			aria-label={`Preview for ${formatRepoName(previewProject.name)}`}
 			role="button"
 			tabindex="0"
 			onmouseenter={cancelPreviewClose}
@@ -231,7 +240,7 @@
 			onclick={openPreviewAsDrawer}
 		>
 			<div class="readme-toolbar font-sans text-small hairline-bottom">
-				<h3>{previewProject.name}</h3>
+				<h3>{formatRepoName(previewProject.name)}</h3>
 				<span class="text-muted">Preview</span>
 			</div>
 			<div class="readme-content preview-content">
@@ -241,10 +250,10 @@
 						{@html previewProject.readmeHtml}
 					</article>
 					<p class="preview-hint font-sans text-small text-muted">
-						Click the card to open the full README.
+						Open this project to review the architecture, implementation details, and tradeoffs.
 					</p>
 				{:else}
-					<p class="text-muted">No README preview is available for this project.</p>
+					<p class="text-muted">A README preview is not available for this project yet.</p>
 				{/if}
 			</div>
 		</div>
@@ -258,11 +267,11 @@
 				class="readme-panel"
 				role="dialog"
 				aria-modal="true"
-				aria-label={`README for ${activeProject.name}`}
+				aria-label={`README for ${formatRepoName(activeProject.name)}`}
 				tabindex="-1"
 			>
 				<div class="readme-toolbar font-sans text-small hairline-bottom">
-					<h3>{activeProject.name}</h3>
+					<h3>{formatRepoName(activeProject.name)}</h3>
 					<div class="project-links">
 						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 						<a class="repo-link" href={activeProject.repoUrl} target="_blank" rel="noreferrer">
@@ -290,7 +299,9 @@
 							{@html activeProject.readmeHtml}
 						</article>
 					{:else}
-						<p class="text-muted">No README could be loaded for this project.</p>
+						<p class="text-muted">
+							The README could not be loaded right now, so please open the repository directly.
+						</p>
 					{/if}
 				</div>
 			</div>

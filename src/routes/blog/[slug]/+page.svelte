@@ -7,18 +7,48 @@
 		day: 'numeric',
 		year: 'numeric'
 	});
-	let paragraphs = $derived(
-		data.post.bodyText
-			.split('\n')
-			.map((line: string) => line.trim())
-			.filter(Boolean)
+
+	type PortableTextSpan = {
+		_type: 'span';
+		text?: string;
+	};
+
+	type PortableTextBlock = {
+		_type: 'block';
+		style?: string;
+		children?: PortableTextSpan[];
+	};
+
+	function isPortableTextBlock(value: unknown): value is PortableTextBlock {
+		return (
+			typeof value === 'object' &&
+			value !== null &&
+			'_type' in value &&
+			value._type === 'block'
+		);
+	}
+
+	function blockText(block: PortableTextBlock): string {
+		return (
+			block.children
+				?.filter((child) => child?._type === 'span')
+				.map((child) => child.text ?? '')
+				.join('') ?? ''
+		);
+	}
+
+	let blocks = $derived(
+		(Array.isArray(data.post.body) ? data.post.body : [])
+			.filter(isPortableTextBlock)
+			.map((block) => ({ ...block, text: blockText(block) }))
+			.filter((block) => block.text.trim().length > 0)
 	);
 </script>
 
 <main class="container blog-post-page">
 	<article class="post">
-		<p class="back-link font-sans text-small"><a href={resolve('/blog')}>← Back to Blog</a></p>
-		<p class="kicker uppercase font-sans text-small">Field Report</p>
+		<p class="back-link font-sans text-small"><a href={resolve('/blog')}>← Back to Engineering Notes</a></p>
+		<p class="kicker uppercase font-sans text-small">Engineering Breakdown</p>
 		<h1>{data.post.title}</h1>
 		<p class="post-meta font-sans text-small text-muted">
 			{fullDate.format(new Date(data.post.publishedAt))}
@@ -29,8 +59,18 @@
 		<p class="deck text-muted">{data.post.excerpt}</p>
 
 		<div class="post-body hairline-top">
-			{#each paragraphs as paragraph, index (`${index}-${paragraph.slice(0, 20)}`)}
-				<p>{paragraph}</p>
+			{#each blocks as block, index (`${index}-${block.text.slice(0, 20)}`)}
+				{#if block.style === 'h1' || block.style === 'h2'}
+					<h2>{block.text}</h2>
+				{:else if block.style === 'h3'}
+					<h3>{block.text}</h3>
+				{:else if block.style === 'h4'}
+					<h4>{block.text}</h4>
+				{:else if block.style === 'blockquote'}
+					<blockquote>{block.text}</blockquote>
+				{:else}
+					<p>{block.text}</p>
+				{/if}
 			{/each}
 		</div>
 	</article>
@@ -77,5 +117,33 @@
 
 	.post-body p {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.post-body h2,
+	.post-body h3,
+	.post-body h4 {
+		margin-top: var(--spacing-md);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.post-body h2 {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+	}
+
+	.post-body h3 {
+		font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+	}
+
+	.post-body h4 {
+		font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+		font-family: var(--font-sans);
+	}
+
+	.post-body blockquote {
+		margin: 0 0 var(--spacing-md);
+		padding-left: var(--spacing-sm);
+		border-left: 2px solid var(--color-hairline);
+		color: var(--color-muted);
+		font-style: italic;
 	}
 </style>

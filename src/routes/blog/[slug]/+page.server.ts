@@ -8,7 +8,7 @@ type BlogPostDetail = {
 	excerpt: string;
 	publishedAt: string;
 	readingMinutes?: number;
-	bodyText: string;
+	body: unknown[];
 };
 
 export const load: PageServerLoad = async ({ fetch, params, setHeaders }) => {
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ fetch, params, setHeaders }) => {
 		excerpt,
 		publishedAt,
 		readingMinutes,
-		"bodyText": pt::text(body)
+		body
 	}`;
 
 	try {

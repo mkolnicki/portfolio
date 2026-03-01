@@ -19,20 +19,20 @@
 		<header class="blog-header thick-bottom">
 			<h2 class="page-title">Engineering Notes</h2>
 			<p class="page-deck text-muted">
-				Writing on backend engineering, data systems, and practical AI implementation. Published from
-				Sanity Studio without redeploying the site.
+				Technical notes on building meaningful applications at scale. These posts document
+				implementation details, tradeoffs, and lessons learned while shipping software that supports
+				both organizational growth and better user experiences.
 			</p>
 		</header>
 
 		{#if data.authError}
 			<p class="auth-warning font-sans text-small">
-				Blog is connected but blocked by Sanity auth. Add <code>SANITY_API_READ_TOKEN</code> to your app
-				env and restart the dev server.
+				Blog content is temporarily unavailable because of a content API configuration issue.
 			</p>
 		{/if}
 
 		{#if data.posts.length === 0}
-			<p>No blog posts published yet.</p>
+			<p>No posts are published yet. New engineering notes are coming soon.</p>
 		{:else}
 			<ul class="toc-list">
 				{#each data.posts as post, index (post.slug)}

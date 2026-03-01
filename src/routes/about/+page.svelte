@@ -1,29 +1,22 @@
 <main class="container about-page">
 	<article class="about-story">
 		<header class="about-header thick-bottom">
-			<h2 class="page-title">Backend Developer and Data Engineer</h2>
+			<h2 class="page-title">I build products that solve meaningful problems and create durable value.</h2>
 			<p class="page-deck text-muted">
-				I’m most energized by technology, developer experience, and deep technical exploration.
+				I focus on shipping applications that help organizations scale while improving the daily
+				experience of the people who use them.
 			</p>
 		</header>
 		<div class="story-body hairline-top">
 				<p>
-					At Digital Hands, I work across backend development, data engineering, and cloud
-					infrastructure. I enjoy moving between systems work and product-facing problems, especially
-					when it means making complex things feel straightforward.
+					At Digital Hands, I work across product and platform initiatives to turn complex business
+					needs into dependable software experiences. My goal is to ship work that is useful
+					immediately and still maintainable as teams and requirements grow.
 				</p>
 				<p>
-					A lot of my recent work has involved AI and LLM integrations, but I’m most interested in the
-					practical side: how these tools fit into real workflows and improve the experience for the
-					people using them.
-				</p>
-				<p>
-					I care deeply about developer experience. Good tooling, clear abstractions, and predictable
-					systems make teams more effective and make software more enjoyable to build.
-				</p>
-				<p>
-					I like going deep technically, learning new systems end-to-end, and then distilling that
-					complexity into solutions that are clean, reliable, and maintainable.
+					A significant part of my recent work involves AI and LLM integration, and I approach it
+					with practical expectations. I prioritize clear constraints, measurable outcomes, and
+					thoughtful implementation so the result supports real people instead of adding noise.
 				</p>
 		</div>
 	</article>
@@ -33,7 +26,8 @@
 		<div class="briefing-item hairline-bottom">
 			<h4>Current Role</h4>
 			<p class="text-small text-muted">
-				Backend Developer & Data Engineer at Digital Hands (Feb 2023 - Present).
+				Software Engineer at Digital Hands since 2023, building applications that support growing
+				teams and evolving products.
 			</p>
 		</div>
 		<div class="briefing-item hairline-bottom">
@@ -46,7 +40,8 @@
 		<div class="briefing-item">
 			<h4>Specialties</h4>
 			<p class="text-small text-muted">
-				Developer experience, LLM integration, API reliability, ETL design, and cloud architecture.
+				Product-minded engineering, scalable application design, developer experience, and
+				production-ready AI integration.
 			</p>
 		</div>
 	</aside>
