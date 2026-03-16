@@ -1,9 +1,0 @@
----
-title: "The Architecture of the Aether"
-date: "2024-02-12T10:00:00.000Z"
-excerpt: "How we implemented pure CSS parity for complex mathematical visualizations without sacrificing sub-millisecond load times."
-image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1600&h=800"
-tags: ["CSS", "Performance", "Data Architecture"]
----
-
-Building the Aether platform required rethinking how we push pixels to the browser...

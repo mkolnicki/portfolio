@@ -9,11 +9,25 @@
 
 	let scrollY = $state(0);
 	let scrolled = $derived(scrollY > 50);
+
+	const segments = $derived(page.url.pathname.split('/').filter(Boolean));
+	const isDetailPage = $derived(
+		segments.length >= 2 && (segments[0] === 'blog' || segments[0] === 'projects')
+	);
+	const backHref = $derived(isDetailPage ? `/${segments[0]}` : null);
+	const backLabel = $derived(
+		segments[0] === 'blog' ? 'Blog' : segments[0] === 'projects' ? 'Projects' : ''
+	);
 </script>
 
 <svelte:window bind:scrollY />
 
 <header class="header" class:header--scrolled={scrolled}>
+	{#if isDetailPage && backHref}
+		<a href={backHref} class="header__back" aria-label="Back to {backLabel}">
+			&larr; Back
+		</a>
+	{/if}
 	<div class="header__inner">
 		<nav class="header__nav" aria-label="Main navigation">
 			<a href="/" class="header__logo" aria-label="Home page">MK</a>
@@ -134,6 +148,43 @@
 
 	@media (min-width: 640px) {
 		.header__cta {
+			display: flex;
+		}
+	}
+
+	.header__back {
+		pointer-events: auto;
+		position: absolute;
+		left: 1.5rem;
+		top: 50%;
+		transform: translateY(-50%);
+		display: none;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--color-accent);
+		padding: 0.4rem 0.9rem;
+		border-radius: 100px;
+		border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+		background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+		backdrop-filter: blur(12px);
+		transition:
+			color var(--transition-fast),
+			border-color var(--transition-fast),
+			background var(--transition-fast),
+			transform 200ms var(--ease-spring);
+	}
+
+	.header__back:hover {
+		color: var(--color-accent-hover);
+		border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+		background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+		transform: translateY(-50%) translateX(-2px);
+	}
+
+	@media (min-width: 1100px) {
+		.header__back {
 			display: flex;
 		}
 	}

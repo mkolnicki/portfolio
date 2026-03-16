@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Seo from '$lib/components/Seo.svelte';
-	import BlogCard from '$lib/components/BlogCard.svelte';
+	import ProjectCard from '$lib/components/ProjectCard.svelte';
 	import { formatDate } from '$lib/utils/formatDate';
 	import { browser } from '$app/environment';
 	import { reveal } from '$lib/actions/reveal';
@@ -33,43 +33,61 @@
 
 <Seo title={data.meta.title} description={data.meta.excerpt} image={data.meta.image} />
 
-<article class="post container">
-	<a href="/blog" class="post__back">&larr; Back to Writing</a>
-	<header class="post__header">
-		<div class="post__meta">
+<article class="project container">
+	<a href="/projects" class="project__back">&larr; Back to Projects</a>
+	<header class="project__header">
+		<div class="project__meta">
 			<time datetime={data.meta.date}>{formatDate(data.meta.date)}</time>
-			<span>&middot;</span>
-			<span>{data.meta.readingMinutes} min read</span>
+			{#if data.meta.readingMinutes}
+				<span>&middot;</span>
+				<span>{data.meta.readingMinutes} min read</span>
+			{/if}
 		</div>
-		<h1 class="post__title">{data.meta.title}</h1>
+		<h1 class="project__title">{data.meta.title}</h1>
 		{#if data.meta.tags.length}
-			<div class="post__tags">
+			<div class="project__tags">
 				{#each data.meta.tags as tag}
-					<span class="post__tag">{tag}</span>
+					<span class="project__tag">{tag}</span>
 				{/each}
 			</div>
 		{/if}
+		{#if data.meta.github}
+			<a href={data.meta.github} class="project__github" target="_blank" rel="noopener noreferrer">
+				<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+					<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+						0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
+						-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2
+						-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82
+						.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08
+						2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01
+						1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+				</svg>
+				View on GitHub
+				<span class="project__github-arrow">&nearr;</span>
+			</a>
+		{/if}
 	</header>
+
 	<div class="prose" bind:this={proseEl}>
 		<data.component />
 	</div>
 
-	{#if data.prevPost || data.nextPost}
-		<nav class="post-nav" aria-label="Post navigation" use:reveal={{ distance: '20px', duration: 500 }}>
-			{#if data.prevPost}
-				<a href="/blog/{data.prevPost.slug}" class="post-nav__link post-nav__link--prev">
-					<span class="post-nav__direction">&larr; Older</span>
-					<span class="post-nav__title">{data.prevPost.title}</span>
-					<time class="post-nav__date" datetime={data.prevPost.date}>{formatDate(data.prevPost.date)}</time>
+	{#if data.prevProject || data.nextProject}
+		<nav class="project-nav" aria-label="Project navigation" use:reveal={{ distance: '20px', duration: 500 }}>
+			{#if data.prevProject}
+				<a href="/projects/{data.prevProject.slug}" class="project-nav__link project-nav__link--prev">
+					<span class="project-nav__direction">&larr; Older</span>
+					<span class="project-nav__title">{data.prevProject.title}</span>
+					<time class="project-nav__date" datetime={data.prevProject.date}>{formatDate(data.prevProject.date)}</time>
 				</a>
 			{:else}
 				<div></div>
 			{/if}
-			{#if data.nextPost}
-				<a href="/blog/{data.nextPost.slug}" class="post-nav__link post-nav__link--next">
-					<span class="post-nav__direction">Newer &rarr;</span>
-					<span class="post-nav__title">{data.nextPost.title}</span>
-					<time class="post-nav__date" datetime={data.nextPost.date}>{formatDate(data.nextPost.date)}</time>
+			{#if data.nextProject}
+				<a href="/projects/{data.nextProject.slug}" class="project-nav__link project-nav__link--next">
+					<span class="project-nav__direction">Newer &rarr;</span>
+					<span class="project-nav__title">{data.nextProject.title}</span>
+					<time class="project-nav__date" datetime={data.nextProject.date}>{formatDate(data.nextProject.date)}</time>
 				</a>
 			{:else}
 				<div></div>
@@ -79,10 +97,10 @@
 
 	{#if data.related.length}
 		<section class="related" use:reveal={{ distance: '20px', duration: 500 }}>
-			<h2 class="related__title">Related Articles</h2>
+			<h2 class="related__title">Related Projects</h2>
 			<div class="related__grid">
-				{#each data.related as post, i (post.slug)}
-					<BlogCard {post} delay={i * 100} />
+				{#each data.related as project, i (project.slug)}
+					<ProjectCard {project} delay={i * 100} />
 				{/each}
 			</div>
 		</section>
@@ -101,13 +119,13 @@
 		transition: width 50ms linear;
 	}
 
-	.post {
+	.project {
 		padding-top: 7rem;
 		padding-bottom: 4rem;
 		max-width: var(--prose-width);
 	}
 
-	.post__back {
+	.project__back {
 		display: inline-block;
 		font-size: var(--text-sm);
 		color: var(--color-text-muted);
@@ -115,23 +133,23 @@
 		transition: color var(--transition-fast);
 	}
 
-	.post__back:hover {
+	.project__back:hover {
 		color: var(--color-text);
 	}
 
 	@media (min-width: 1100px) {
-		.post__back {
+		.project__back {
 			display: none;
 		}
 	}
 
-	.post__header {
+	.project__header {
 		margin-bottom: 2.5rem;
 		padding-bottom: 2rem;
 		border-bottom: 1px solid var(--color-border-subtle);
 	}
 
-	.post__meta {
+	.project__meta {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -140,20 +158,21 @@
 		margin-bottom: 0.75rem;
 	}
 
-	.post__title {
+	.project__title {
 		font-size: var(--text-3xl);
 		font-weight: 700;
 		line-height: 1.15;
 		margin-bottom: 1rem;
 	}
 
-	.post__tags {
+	.project__tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
+		margin-bottom: 1.25rem;
 	}
 
-	.post__tag {
+	.project__tag {
 		font-size: 0.75rem;
 		padding: 0.15rem 0.5rem;
 		background: var(--color-surface);
@@ -162,8 +181,39 @@
 		color: var(--color-text-muted);
 	}
 
-	/* Prev/Next navigation */
-	.post-nav {
+	.project__github {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		color: var(--color-text-muted);
+		padding: 0.5rem 1rem;
+		border: 1px solid var(--color-border-subtle);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		transition:
+			color var(--transition-fast),
+			border-color var(--transition-fast),
+			background var(--transition-fast);
+	}
+
+	.project__github:hover {
+		color: var(--color-text);
+		border-color: var(--color-border);
+		background: var(--color-bg-subtle);
+	}
+
+	.project__github-arrow {
+		font-size: 0.85em;
+		transition: transform 200ms var(--ease-out-expo);
+	}
+
+	.project__github:hover .project__github-arrow {
+		transform: translate(2px, -2px);
+	}
+
+	.project-nav {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 1.5rem;
@@ -172,7 +222,7 @@
 		border-top: 1px solid var(--color-border-subtle);
 	}
 
-	.post-nav__link {
+	.project-nav__link {
 		display: flex;
 		flex-direction: column;
 		gap: 0.35rem;
@@ -185,16 +235,16 @@
 			transform 200ms var(--ease-spring);
 	}
 
-	.post-nav__link:hover {
+	.project-nav__link:hover {
 		border-color: var(--color-border);
 		transform: translateY(-2px);
 	}
 
-	.post-nav__link--next {
+	.project-nav__link--next {
 		text-align: right;
 	}
 
-	.post-nav__direction {
+	.project-nav__direction {
 		font-family: var(--font-mono);
 		font-size: 0.7rem;
 		text-transform: uppercase;
@@ -202,7 +252,7 @@
 		color: var(--color-accent);
 	}
 
-	.post-nav__title {
+	.project-nav__title {
 		font-size: var(--text-base);
 		font-weight: 600;
 		color: var(--color-text);
@@ -212,12 +262,11 @@
 		white-space: nowrap;
 	}
 
-	.post-nav__date {
+	.project-nav__date {
 		font-size: var(--text-sm);
 		color: var(--color-text-muted);
 	}
 
-	/* Related posts */
 	.related {
 		margin-top: 4rem;
 		padding-top: 2.5rem;
@@ -240,11 +289,11 @@
 	}
 
 	@media (max-width: 768px) {
-		.post-nav {
+		.project-nav {
 			grid-template-columns: 1fr;
 		}
 
-		.post-nav__link--next {
+		.project-nav__link--next {
 			text-align: left;
 		}
 	}

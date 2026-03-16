@@ -1,11 +1,66 @@
 ---
 title: "Nura Health Diagnostics"
+slug: "nura-health"
 date: "2024-01-15"
 excerpt: "Precision longevity medicine powered by biological data architecture and predictive modeling."
-image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=1500&auto=format&fit=crop"
+featured: false
+readingMinutes: 5
 tags: ["Architecture", "LLMs", "HealthTech"]
-url: "#"
-draft: false
+github: "https://github.com/matthewkolnicki/nura-health"
 ---
 
-A complete overhaul of the Nura platform utilizing high-fidelity web engineering and cinematic interaction models for medical analytics.
+<script>
+	import NuraHealthDemo from '$lib/components/demos/NuraHealthDemo.svelte';
+</script>
+
+# Nura Health Diagnostics
+
+A complete overhaul of the Nura platform utilizing high-fidelity web engineering and cinematic interaction models for medical analytics. The goal was to make complex biomarker data feel intuitive for both clinicians and patients — turning walls of lab results into actionable health narratives.
+
+<div style="height: 340px; margin: 2rem 0; border-radius: var(--radius-lg); overflow: hidden;">
+	<NuraHealthDemo />
+</div>
+
+The biomarker panel above shows the real-time monitoring view — ECG waveform with heart rate, and three key health markers (VO2 max, heart rate variability, C-reactive protein) rendered as animated progress bars.
+
+## Context
+
+Nura Health is a longevity medicine platform that aggregates lab work, wearable data, and genomic markers into a unified patient profile. The existing dashboard was a standard React table grid — functional but impenetrable for patients and tedious for clinicians reviewing dozens of profiles a day.
+
+## Design Philosophy
+
+We approached the redesign with three principles:
+
+1. **Data as narrative** — biomarker trends should tell a story, not present a spreadsheet
+2. **Progressive disclosure** — surface the signal, let users drill into the noise
+3. **Cinematic quality** — health data deserves the same visual care as a Bloomberg terminal
+
+## Architecture
+
+The frontend is a SvelteKit application backed by a Python API layer that handles data aggregation and LLM-powered insight generation. Patient data flows through a pipeline that normalizes heterogeneous lab formats, computes derived metrics, and generates natural-language summaries.
+
+### LLM Integration
+
+Each patient profile includes an AI-generated health brief produced by a fine-tuned model that ingests the normalized biomarker history and outputs a structured summary. The model was trained to flag clinically relevant trends (e.g., "fasting glucose trending upward over 6 months despite stable HbA1c") rather than generic observations.
+
+### Visualization Layer
+
+Biomarker data is rendered as animated sparkline rivers — continuous curves with reference range bands that shift from green to amber to red. Hovering a point reveals the exact value, lab source, and date. Zooming out collapses individual markers into organ-system health scores.
+
+## Key Features
+
+- **Unified patient timeline** across labs, wearables, and genomics
+- **LLM-generated health briefs** with citation links to source data
+- **Sparkline rivers** for multi-year biomarker trends with reference bands
+- **Organ-system health scores** aggregated from individual markers
+- **Clinician batch review** mode for efficient multi-patient workflows
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | SvelteKit |
+| API | Python (FastAPI) |
+| LLM | Fine-tuned GPT-4 via Azure OpenAI |
+| Data | PostgreSQL, Redis |
+| Visualization | D3.js, custom SVG |

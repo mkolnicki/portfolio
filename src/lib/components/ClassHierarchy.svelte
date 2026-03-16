@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 
+	interface Props {
+		active?: boolean;
+	}
+
+	const { active = true }: Props = $props();
+
 	let visible = $state(false);
 	let container: HTMLDivElement | undefined = $state();
 
@@ -8,7 +14,7 @@
 		if (!browser || !container) return;
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				if (entry.isIntersecting) {
+				if (entry.isIntersecting && active) {
 					visible = true;
 					observer.disconnect();
 				}
@@ -17,6 +23,13 @@
 		);
 		observer.observe(container);
 		return () => observer.disconnect();
+	});
+
+	// Also trigger when active changes to true and already intersecting
+	$effect(() => {
+		if (active && !visible && container) {
+			visible = true;
+		}
 	});
 
 	interface Box {

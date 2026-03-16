@@ -1,17 +1,47 @@
 <script lang="ts">
 	import type { Project } from '$lib/utils/content';
+	import { getDemoComponent } from '$lib/registry/demoRegistry';
+	import { browser } from '$app/environment';
 	import { spotlight } from '$lib/actions/spotlight';
 	import { reveal } from '$lib/actions/reveal';
 
 	interface Props {
 		project: Project;
+		delay?: number;
 	}
 
-	const { project }: Props = $props();
+	const { project, delay = 0 }: Props = $props();
+
+	const Demo = getDemoComponent(project.slug);
+
+	let el: HTMLAnchorElement | undefined = $state();
+	let active = $state(false);
+
+	$effect(() => {
+		if (!browser || !el) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				active = entry.isIntersecting;
+			},
+			{ threshold: 0.2 }
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	});
 </script>
 
-<div class="project-card" use:spotlight>
+<a href="/projects/{project.slug}" class="project-card" use:spotlight use:reveal={{ delay, distance: '20px', duration: 500 }} bind:this={el}>
+	{#if Demo}
+		<div class="project-card__demo" aria-hidden="true">
+			<Demo {active} />
+		</div>
+	{:else if project.image}
 		<img src={project.image} alt={project.title} class="project-card__image" loading="lazy" />
+	{:else}
+		<div class="project-card__placeholder" aria-hidden="true">
+			<span class="project-card__placeholder-icon">&lt;/&gt;</span>
+		</div>
+	{/if}
 	<div class="project-card__body">
 		<h3 class="project-card__title">{project.title}</h3>
 		<p class="project-card__excerpt">{project.excerpt}</p>
@@ -22,13 +52,8 @@
 				{/each}
 			</div>
 		{/if}
-		{#if project.url}
-			<a href={project.url} class="project-card__link" target="_blank" rel="noopener noreferrer">
-				View Project <span class="project-card__arrow">&rarr;</span>
-			</a>
-		{/if}
 	</div>
-</div>
+</a>
 
 <style>
 	.project-card {
@@ -45,7 +70,7 @@
 			transform 250ms var(--ease-spring),
 			box-shadow var(--transition-base),
 			border-color var(--transition-base);
-		box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
 	}
 
 	.project-card::before {
@@ -85,11 +110,36 @@
 		border-color: var(--color-border);
 	}
 
+	.project-card__demo {
+		flex: 1 1 0;
+		min-height: 0;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
 	.project-card__image {
 		width: 100%;
 		flex: 1 1 0;
 		min-height: 0;
 		object-fit: cover;
+	}
+
+	.project-card__placeholder {
+		width: 100%;
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, var(--color-bg-subtle) 0%, var(--color-surface) 100%);
+		border-bottom: 1px solid var(--color-border-subtle);
+	}
+
+	.project-card__placeholder-icon {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xl);
+		color: var(--color-border);
+		opacity: 0.5;
 	}
 
 	.project-card__body {
@@ -145,23 +195,4 @@
 		color: var(--color-text-muted);
 	}
 
-	.project-card__link {
-		font-size: var(--text-sm);
-		font-weight: 500;
-		color: var(--color-accent-hover);
-		transition: color var(--transition-fast);
-	}
-
-	.project-card__link:hover {
-		filter: brightness(1.2);
-	}
-
-	.project-card__arrow {
-		display: inline-block;
-		transition: transform 250ms var(--ease-out-expo);
-	}
-
-	.project-card:hover .project-card__arrow {
-		transform: translateX(4px);
-	}
 </style>

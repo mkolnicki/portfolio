@@ -16,9 +16,11 @@ export interface Project {
 	slug: string;
 	date: string;
 	excerpt: string;
+	featured: boolean;
+	readingMinutes: number;
 	image?: string;
 	tags: string[];
-	url?: string;
+	github?: string;
 }
 
 interface MdsvexModule {
@@ -59,6 +61,18 @@ export function getPostBySlug(slug: string): { meta: BlogPost; component: typeof
 	const [path, mod] = entry;
 	return {
 		meta: { ...(mod.metadata as unknown as BlogPost), slug: mod.metadata.slug as string ?? extractSlug(path) },
+		component: mod.default
+	};
+}
+
+export function getProjectBySlug(slug: string): { meta: Project; component: typeof SvelteComponent } | undefined {
+	const entry = Object.entries(projectModules).find(
+		([path, mod]) => (mod.metadata.slug as string ?? extractSlug(path)) === slug
+	);
+	if (!entry) return undefined;
+	const [path, mod] = entry;
+	return {
+		meta: { ...(mod.metadata as unknown as Project), slug: mod.metadata.slug as string ?? extractSlug(path) },
 		component: mod.default
 	};
 }

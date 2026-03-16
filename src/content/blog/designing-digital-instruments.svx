@@ -1,9 +1,0 @@
----
-title: "Designing Digital Instruments"
-date: "2024-01-20T10:00:00.000Z"
-excerpt: "Why the modern web requires shedding 'pages' in favor of high-fidelity, weight-bearing interactive surfaces."
-image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1600&h=800"
-tags: ["UI/UX", "Philosophy", "Design Systems"]
----
-
-When interacting with software, every click should feel intentional...

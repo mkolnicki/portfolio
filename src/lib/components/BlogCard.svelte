@@ -1,18 +1,48 @@
 <script lang="ts">
 	import type { BlogPost } from '$lib/utils/content';
+	import { getDemoComponent } from '$lib/registry/demoRegistry';
+	import { browser } from '$app/environment';
 	import { formatDate } from '$lib/utils/formatDate';
 	import { spotlight } from '$lib/actions/spotlight';
 	import { reveal } from '$lib/actions/reveal';
 
 	interface Props {
 		post: BlogPost;
+		delay?: number;
 	}
 
-	const { post }: Props = $props();
+	const { post, delay = 0 }: Props = $props();
+
+	const Demo = getDemoComponent(post.slug);
+
+	let el: HTMLAnchorElement | undefined = $state();
+	let active = $state(false);
+
+	$effect(() => {
+		if (!browser || !el) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				active = entry.isIntersecting;
+			},
+			{ threshold: 0.2 }
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	});
 </script>
 
-<a href="/blog/{post.slug}" class="blog-card" use:spotlight>
-	<img src={post.image} alt={post.title} class="blog-card__image" loading="lazy" />
+<a href="/blog/{post.slug}" class="blog-card" use:spotlight use:reveal={{ delay, distance: '20px', duration: 500 }} bind:this={el}>
+	{#if Demo}
+		<div class="blog-card__demo" aria-hidden="true">
+			<Demo {active} />
+		</div>
+	{:else if post.image}
+		<img src={post.image} alt={post.title} class="blog-card__image" loading="lazy" />
+	{:else}
+		<div class="blog-card__placeholder" aria-hidden="true">
+			<span class="blog-card__placeholder-icon">&para;</span>
+		</div>
+	{/if}
 	<div class="blog-card__body">
 		<div class="blog-card__meta">
 			<time datetime={post.date}>{formatDate(post.date)}</time>
@@ -84,11 +114,36 @@
 		border-color: var(--color-border);
 	}
 
+	.blog-card__demo {
+		flex: 1 1 0;
+		min-height: 0;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
 	.blog-card__image {
 		width: 100%;
 		flex: 1 1 0;
 		min-height: 0;
 		object-fit: cover;
+	}
+
+	.blog-card__placeholder {
+		width: 100%;
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, var(--color-bg-subtle) 0%, var(--color-surface) 100%);
+		border-bottom: 1px solid var(--color-border-subtle);
+	}
+
+	.blog-card__placeholder-icon {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xl);
+		color: var(--color-border);
+		opacity: 0.5;
 	}
 
 	.blog-card__body {

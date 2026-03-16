@@ -1,11 +1,70 @@
 ---
 title: "Protocol Alpha"
+slug: "protocol-alpha"
 date: "2023-08-10"
 excerpt: "Command-line visualization bridging the gap between raw terminal logs and human intuition."
-image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1500&auto=format&fit=crop"
+featured: false
+readingMinutes: 4
 tags: ["Open Source", "TypeScript", "CLI"]
-url: "#"
-draft: false
+github: "https://github.com/matthewkolnicki/protocol-alpha"
 ---
 
-A robust protocol enabling developers to instantly map complex terminal outputs to interactive visual graphs.
+<script>
+	import ProtocolAlphaDemo from '$lib/components/demos/ProtocolAlphaDemo.svelte';
+</script>
+
+# Protocol Alpha
+
+A robust protocol enabling developers to instantly map complex terminal outputs to interactive visual graphs. Protocol Alpha sits between your CLI tools and your eyes, transforming structured log streams into navigable, filterable visualizations rendered directly in the terminal.
+
+<div style="height: 340px; margin: 2rem 0; border-radius: var(--radius-lg); overflow: hidden;">
+	<ProtocolAlphaDemo />
+</div>
+
+The terminal view above shows the live log ingestion panel alongside a throughput sparkline — color-coded entries (INFO, WARN, DEBUG) stream in while the chart tracks aggregate performance.
+
+## Problem
+
+Modern backend systems produce enormous volumes of structured logs — JSON lines, trace spans, metric series. Developers typically pipe these through `jq`, `grep`, and `awk` chains that work but destroy the relationships between events. When debugging a distributed request, you're mentally reconstructing a graph from a flat text stream.
+
+## Solution
+
+Protocol Alpha intercepts structured output (JSON lines, CSV, or custom delimited formats) and renders it as an interactive TUI (terminal user interface). Traces become flame graphs. Time-series metrics become sparklines. Hierarchical data becomes collapsible trees. All without leaving the terminal.
+
+### Parser Pipeline
+
+The input parser is pluggable — it auto-detects JSON lines, but you can register custom parsers for proprietary formats. Each parser emits a normalized event stream that the rendering engine consumes.
+
+```
+stdin → Format Detection → Parser → Normalized Events → Layout Engine → TUI Render
+```
+
+### Layout Engine
+
+The layout engine maps event types to visual primitives:
+
+- **Trace spans** → horizontal flame graph bars
+- **Counters/gauges** → rolling sparkline strips
+- **Hierarchical data** → collapsible tree nodes
+- **Key-value pairs** → aligned table columns with diff highlighting
+
+Users can switch between layouts on the fly with keyboard shortcuts, and pin specific streams to persistent panels.
+
+## Key Features
+
+- **Auto-detection** of JSON lines, CSV, and custom delimited formats
+- **Interactive flame graphs** for distributed trace visualization
+- **Rolling sparklines** for time-series metrics in the terminal
+- **Keyboard-driven navigation** with Vim-style bindings
+- **Pipe-friendly** — works as a drop-in replacement for `less` or `jq`
+- **Plugin system** for custom parsers and renderers
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Node.js |
+| Language | TypeScript |
+| TUI | Ink (React for CLI) |
+| Parsing | Custom streaming parser |
+| Distribution | npm package |

@@ -1,11 +1,71 @@
 ---
 title: "Vogue Digital Asset Management"
+slug: "vogue-digital"
 date: "2023-04-05"
 excerpt: "Editorial platform engineering mapping thousands of high-res assets seamlessly to the edge."
-image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1500&auto=format&fit=crop"
+featured: false
+readingMinutes: 5
 tags: ["Editorial", "Cloudflare", "UX Architecture"]
-url: "#"
-draft: false
+github: "https://github.com/matthewkolnicki/vogue-dam"
 ---
 
-A bespoke edge-first content management suite specifically designed for lightning-fast editorial load times.
+<script>
+	import VogueDigitalDemo from '$lib/components/demos/VogueDigitalDemo.svelte';
+</script>
+
+# Vogue Digital Asset Management
+
+A bespoke edge-first content management suite specifically designed for lightning-fast editorial load times. Built for an editorial team that manages tens of thousands of high-resolution images per season, the platform needed to feel instant despite serving assets that regularly exceed 50MB in their raw form.
+
+<div style="height: 340px; margin: 2rem 0; border-radius: var(--radius-lg); overflow: hidden;">
+	<VogueDigitalDemo />
+</div>
+
+The progressive loading sequence above shows the core UX innovation — assets load in stages from shimmer placeholders to full content, with a progress bar tracking the batch. This is the same pattern used across the editorial browsing interface.
+
+## Context
+
+Editorial teams at scale deal with a unique asset management challenge: images are the product, not decoration. A single fashion editorial might contain 200+ selects at 8K resolution, and editors need to browse, compare, and annotate them with the same fluidity they'd expect from a local Finder window — except the assets live in cloud storage across three continents.
+
+## Architecture
+
+The system is built on three pillars:
+
+### 1. Edge-First Delivery
+
+Every asset request hits a Cloudflare Worker that determines the optimal variant (resolution, format, crop) based on the requesting device, viewport, and network conditions. Workers maintain a tiered cache: hot assets in edge KV, warm assets in R2, cold assets fetched on-demand from the origin S3 bucket.
+
+### 2. Progressive Loading Pipeline
+
+The upload pipeline generates a pyramid of derivatives immediately on ingest:
+
+- **Blurhash placeholder** (under 100 bytes, inline in HTML)
+- **LQIP thumbnail** (WebP, ~2KB)
+- **Preview** (1200px WebP, ~30KB)
+- **Full resolution** (original format, preserved metadata)
+
+The frontend renders these progressively — blurhash appears instantly, LQIP fades in within 100ms, preview loads by 500ms, and full resolution streams in the background only when the user zooms.
+
+### 3. Annotation Layer
+
+Editors can draw regions of interest directly on images, attach comments, and tag assets with semantic labels. Annotations are stored as normalized coordinates (0-1 range) so they remain accurate across all derivative sizes.
+
+## Key Features
+
+- **Sub-200ms time-to-first-image** for editorial browsing sessions
+- **Progressive enhancement** from blurhash to full resolution
+- **Intelligent format negotiation** (AVIF → WebP → JPEG, per-client)
+- **Collaborative annotations** with real-time sync via WebSocket
+- **Batch operations** — bulk tag, bulk export, bulk rights assignment
+- **Audit trail** tracking every view, download, and annotation
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Edge | Cloudflare Workers, R2, KV |
+| Frontend | SvelteKit |
+| API | Hono (on Workers) |
+| Storage | S3 (origin), R2 (edge cache) |
+| Search | Meilisearch |
+| Real-time | Durable Objects (WebSocket) |

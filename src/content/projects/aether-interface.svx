@@ -1,11 +1,60 @@
 ---
 title: "Aether Interface"
+slug: "aether-interface"
 date: "2023-11-20"
-excerpt: "An exploratory digital instrument built for algorithmic trading floors with split-second telemetry."
-image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1500&auto=format&fit=crop"
+excerpt: "A design exploration of what a modern trading terminal looks like built with Svelte's reactive primitives."
+featured: true
+readingMinutes: 6
 tags: ["FinTech", "SvelteKit", "DataViz"]
-url: "#"
-draft: false
+github: "https://github.com/matthewkolnicki/aether-interface"
 ---
 
-High-speed rendering of financial streams utilizing complex reactive grids and GSAP micro-interactions.
+<script>
+	import TradingDemo from '$lib/components/demos/TradingDemo.svelte';
+</script>
+
+# Aether Interface
+
+A design exploration of what a modern trading terminal looks like when built entirely with Svelte's reactive primitives — no charting libraries, no animation frameworks, just SVG, runes, and CSS Grid.
+
+<div style="margin: 2rem 0;">
+	<TradingDemo />
+	<p style="text-align: center; font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.5rem;">Live simulation — hover the chart for OHLC details</p>
+</div>
+
+## Realistic Market Simulation
+
+The price data uses a GARCH-inspired volatility model rather than simple random walks. Volatility itself is a mean-reverting process — it clusters (high-volatility periods follow high-volatility periods) and produces the characteristic bursts of activity followed by calm that you see in real markets:
+
+```ts
+volatility = vol * 0.95 + 0.02 * 0.05 + |lastReturn| * 0.15;
+trend = trend * 0.98 + random * 0.005;
+```
+
+Volume correlates with volatility — when price moves sharply, volume spikes. This creates natural-looking patterns where large candles coincide with tall volume bars, matching how real markets behave.
+
+## Data-Driven Visualization
+
+Every number on screen derives from the actual candle data:
+
+- **Price & change** — computed from the first open and last close of visible candles
+- **Volume** — sum of all visible candle volumes, not a random number
+- **Session high/low** — scanned from actual highs and lows
+- **Bid-ask spread** — derived from the simulated order book that clusters around the current price
+
+The order book generates bid and ask rows that cluster around the current price with a realistic spread, and quantities that decrease as you move further from the mid price. It updates with small perturbations each tick.
+
+## Reactive Architecture
+
+Svelte 5 runes make the data flow clean. The simulation runs in a `setInterval` that updates the candle array. Everything downstream — price calculations, chart positions, volume bars, stats — reacts automatically through `$derived` values. There's no imperative update logic, no manual DOM manipulation.
+
+New candles interpolate smoothly from their previous values over 300ms using `requestAnimationFrame`, so the chart feels alive rather than jumpy. The ticker tape tracks persistent instrument prices that evolve over time instead of re-randomizing each frame.
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | SvelteKit |
+| Visualization | SVG |
+| Reactivity | Svelte 5 runes |
+| Layout | CSS Grid + Flexbox |

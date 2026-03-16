@@ -5,7 +5,6 @@ date: "2026-03-15"
 excerpt: "Inheritance gets a bad rap. Here's a concrete example where replacing procedural branching with a class hierarchy makes code cleaner, safer, and easier to extend."
 featured: true
 readingMinutes: 6
-image: "https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?auto=format&fit=crop&q=80&w=1600&h=800"
 tags: ["oop", "design-patterns", "javascript"]
 ---
 

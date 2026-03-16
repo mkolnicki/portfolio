@@ -2,10 +2,9 @@
 title: "Interactive Particle Networks"
 slug: "interactive-particle-networks"
 date: "2026-03-15"
-excerpt: "Building a mouse-reactive particle network animation with Svelte 5 and SVG — no canvas, no libraries."
+excerpt: "Building a mouse-reactive particle network animation with Svelte 5 and SVG — velocity-based physics, spatial hashing, and touch support."
 featured: true
-readingMinutes: 4
-image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1600&h=800"
+readingMinutes: 8
 tags: ["svelte", "animation", "creative-coding"]
 ---
 
@@ -21,41 +20,84 @@ Here's a particle network that reacts to your mouse:
 
 <ParticleNetwork />
 
-Move your cursor over the visualization. The nodes drift with a gentle organic motion and are pulled toward your pointer. Lines connect nearby particles, forming and dissolving as the network shifts.
+Move your cursor over the visualization. Open the controls panel to adjust particle count, connection distance, and interaction mode. Try switching to **repel** mode and watch the particles flee your cursor.
 
-## How it works
+## The Physics Model
 
-The animation is pure SVG — no `<canvas>`, no external libraries. A grid of particles floats with sinusoidal motion, and mouse proximity adds an attraction force.
-
-The core loop is straightforward:
+The original version moved particles by directly setting position — it worked, but felt stiff. The rewrite uses a proper force accumulation → velocity integration → damping loop. Every frame, four forces act on each particle:
 
 ```ts
-for (const p of particles) {
-  const dx = mouseX - p.baseX;
-  const dy = mouseY - p.baseY;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  const influence = Math.max(0, 1 - dist / 200);
+// Sinusoidal drift force
+const driftFx = Math.cos(t + p.phase) * 0.3 * speedMultiplier;
+const driftFy = -Math.sin(t * 0.7 + p.phase) * 0.3 * speedMultiplier;
 
-  p.x = p.baseX + Math.sin(t + p.phase) * 8 + dx * influence * 0.08;
-  p.y = p.baseY + Math.cos(t * 0.7 + p.phase) * 8 + dy * influence * 0.08;
+// Mouse attraction/repulsion force
+const influence = Math.max(0, 1 - dist / 200);
+const mouseFx = dx * influence * attractionStrength * dir;
+
+// Spring force back to base position
+const springFx = (p.baseX - p.x) * 0.005;
+
+// Accumulate → integrate → damp
+p.vx += driftFx + mouseFx + springFx;
+p.vx *= 0.96; // damping
+p.x += p.vx;
+```
+
+The damping coefficient (0.96) is the key to the feel. Too high and particles oscillate forever; too low and they feel sluggish. At 0.96, particles overshoot their targets slightly and settle with a natural ease — much more organic than direct position-setting.
+
+## Interaction Modes
+
+The component supports three modes that change how mouse forces work:
+
+- **Attract** — particles pull toward the cursor, clustering around it
+- **Repel** — the force direction inverts, particles scatter away from the cursor
+- **Spawn** — clicking adds a new particle at the cursor with a random velocity burst (capped at 250 total)
+
+Here's the same component in repel mode with more particles — notice how the negative space around your cursor creates interesting patterns:
+
+<ParticleNetwork initialMode="repel" initialParticleCount={48} />
+
+The mode switch is a single sign flip (`dir = mode === 'repel' ? -1 : 1`), but the visual difference is dramatic because the velocity-based physics naturally create momentum and overshoot in both directions.
+
+## Spatial Hashing for O(n) Connections
+
+The naive approach to drawing connections checks every pair of particles — O(n²). With 96 particles that's 4,560 distance checks per frame. At 200 particles, it's 19,900. On a 60fps budget of 16ms, this becomes the bottleneck.
+
+The fix is a spatial hash: divide the space into a grid where each cell is `connectionDist` wide. To find a particle's potential neighbors, you only check its cell plus the 8 surrounding cells.
+
+```ts
+function buildSpatialHash(pts: Particle[], cellSize: number) {
+  const grid = new Map<string, Particle[]>();
+  for (const p of pts) {
+    const cx = Math.floor(p.x / cellSize);
+    const cy = Math.floor(p.y / cellSize);
+    const key = `${cx},${cy}`;
+    const cell = grid.get(key);
+    if (cell) cell.push(p);
+    else grid.set(key, [p]);
+  }
+  return grid;
 }
 ```
 
-Each particle has a **base position** on a grid, a random **phase offset** for organic variety, and gets nudged toward the cursor based on distance. Connections are drawn between any two particles within a threshold, with opacity fading as they drift apart.
+The cell size trick: setting cell size equal to the connection distance guarantees that any two connectable particles are in the same cell or adjacent cells. This reduces the average case from O(n²) to roughly O(n) — each particle only checks a constant number of neighbors regardless of total count.
+
+The connections also scale opacity based on proximity to the cursor, creating a subtle spotlight effect that makes the area around your pointer feel more alive.
 
 ## Why SVG over Canvas?
 
-For this particle count (~96 nodes), SVG works well and has some advantages:
+For up to ~200 particles, SVG works well and has real advantages:
 
 - **Declarative rendering** — Svelte's `{#each}` block handles the DOM diffing
-- **CSS integration** — colors come straight from CSS custom properties (`var(--color-accent)`)
-- **Accessibility** — the container has `role="img"` and an `aria-label`
+- **CSS integration** — colors come straight from CSS custom properties
+- **Accessibility** — the container has `role="img"`, `aria-label`, and full keyboard support
 - **Simplicity** — no pixel-ratio handling, no manual clear/redraw cycle
 
-For hundreds or thousands of particles, Canvas or WebGL would be the better choice. But for a tasteful decorative element, SVG keeps the code minimal.
+Beyond 200 particles, Canvas or WebGL would be the better choice. But for an interactive demo that balances visual quality with code simplicity, SVG hits the sweet spot.
 
-## Respecting user preferences
+## Accessibility & Touch
 
-The site already includes a global `prefers-reduced-motion` rule that kills animations. The particle component also includes a pause/play toggle so users can stop the motion without changing system settings.
+The component supports touch input (converting `touches[0]` to normalized coordinates) and full keyboard navigation — arrow keys move a virtual cursor, Space toggles pause, and `m` cycles through interaction modes. The wrapper has `tabindex="0"` for focus, and the site's global `prefers-reduced-motion` rule disables animations system-wide.
 
-Small details like these matter — animation should enhance, not annoy.
+The controls panel includes labeled sliders and mode buttons, all accessible without a mouse. Small details like these matter — animation should enhance, not exclude.

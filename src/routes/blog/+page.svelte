@@ -1,57 +1,104 @@
 <script lang="ts">
 	import Seo from '$lib/components/Seo.svelte';
+	import BlogHero from '$lib/components/BlogHero.svelte';
 	import BlogCard from '$lib/components/BlogCard.svelte';
+	import FeaturedPostCard from '$lib/components/FeaturedPostCard.svelte';
+	import TagFilter from '$lib/components/TagFilter.svelte';
+	import { reveal } from '$lib/actions/reveal';
 
 	let { data } = $props();
+
+	let activeTag = $state<string | null>(null);
+
+	const allTags = $derived(() => {
+		const tagSet = new Set<string>();
+		for (const p of data.posts) {
+			for (const t of p.tags) tagSet.add(t);
+		}
+		return [...tagSet].sort();
+	});
+
+	const featuredPost = $derived(data.posts.find((p) => p.featured) ?? null);
+
+	const remaining = $derived(() => {
+		const rest = data.posts.filter((p) => p !== featuredPost);
+		if (!activeTag) return rest;
+		return rest.filter((p) => p.tags.includes(activeTag!));
+	});
+
+	const featuredVisible = $derived(() => {
+		if (!activeTag) return true;
+		return featuredPost?.tags.includes(activeTag!) ?? false;
+	});
 </script>
 
-<Seo title="Blog" description="Writing about AI, web development, and things I'm building." />
+<Seo title="Writing" description="On AI, web development, and things I'm building." />
+
+<BlogHero count={data.posts.length} />
 
 <div class="blog-page container">
-	<header class="blog-page__header">
-		<h1 class="blog-page__title">Blog</h1>
-		<p class="blog-page__desc">Writing about AI, web development, and things I'm building.</p>
-	</header>
+	{#if allTags().length > 1}
+		<div class="blog-page__filters" use:reveal={{ delay: 100, distance: '12px' }}>
+			<TagFilter tags={allTags()} {activeTag} onchange={(tag) => (activeTag = tag)} />
+		</div>
+	{/if}
 
-	{#if data.posts.length}
+	{#if featuredPost && featuredVisible()}
+		<div class="blog-page__featured">
+			<FeaturedPostCard post={featuredPost} />
+		</div>
+	{/if}
+
+	{#if remaining().length}
 		<div class="grid">
-			{#each data.posts as post}
-				<BlogCard {post} />
+			{#each remaining() as post, i (post.slug)}
+				<BlogCard {post} delay={i * 80} />
 			{/each}
 		</div>
-	{:else}
-		<p class="blog-page__empty">No posts yet. Check back soon.</p>
+	{:else if !featuredPost || !featuredVisible()}
+		<p class="blog-page__empty">No posts match this filter.</p>
 	{/if}
 </div>
 
 <style>
 	.blog-page {
-		padding-block: 4rem;
+		padding-bottom: 6rem;
 	}
 
-	.blog-page__header {
+	.blog-page__filters {
 		margin-bottom: 2.5rem;
 	}
 
-	.blog-page__title {
-		font-size: var(--text-3xl);
-		font-weight: 700;
-		margin-bottom: 0.5rem;
-	}
-
-	.blog-page__desc {
-		color: var(--color-text-muted);
-		font-size: var(--text-lg);
+	.blog-page__featured {
+		margin-bottom: 3rem;
 	}
 
 	.grid {
 		display: grid;
-		gap: 2.5rem;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+		gap: 2rem;
+		grid-template-columns: 1.15fr 1fr;
 		grid-auto-rows: 26rem;
+	}
+
+	/* Offset the right column for editorial rhythm */
+	.grid > :global(:nth-child(even)) {
+		transform: translateY(2rem);
 	}
 
 	.blog-page__empty {
 		color: var(--color-text-muted);
+		text-align: center;
+		padding: 4rem 0;
+	}
+
+	@media (max-width: 768px) {
+		.grid {
+			grid-template-columns: 1fr;
+			grid-auto-rows: 24rem;
+		}
+
+		.grid > :global(:nth-child(even)) {
+			transform: none;
+		}
 	}
 </style>
