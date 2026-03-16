@@ -1,149 +1,115 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import Seo from '$lib/components/Seo.svelte';
+	import { formatDate } from '$lib/utils/formatDate';
+	import { browser } from '$app/environment';
 
 	let { data } = $props();
-	const fullDate = new Intl.DateTimeFormat('en-US', {
-		month: 'long',
-		day: 'numeric',
-		year: 'numeric'
-	});
 
-	type PortableTextSpan = {
-		_type: 'span';
-		text?: string;
-	};
+	let scrollProgress = $state(0);
 
-	type PortableTextBlock = {
-		_type: 'block';
-		style?: string;
-		children?: PortableTextSpan[];
-	};
-
-	function isPortableTextBlock(value: unknown): value is PortableTextBlock {
-		return (
-			typeof value === 'object' &&
-			value !== null &&
-			'_type' in value &&
-			value._type === 'block'
-		);
+	function handleScroll() {
+		const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+		if (docHeight > 0) {
+			scrollProgress = Math.min(window.scrollY / docHeight, 1);
+		}
 	}
 
-	function blockText(block: PortableTextBlock): string {
-		return (
-			block.children
-				?.filter((child) => child?._type === 'span')
-				.map((child) => child.text ?? '')
-				.join('') ?? ''
-		);
-	}
-
-	let blocks = $derived(
-		(Array.isArray(data.post.body) ? data.post.body : [])
-			.filter(isPortableTextBlock)
-			.map((block) => ({ ...block, text: blockText(block) }))
-			.filter((block) => block.text.trim().length > 0)
-	);
+	const reducedMotion = browser && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const showProgressBar = browser && !reducedMotion;
 </script>
 
-<main class="container blog-post-page">
-	<article class="post">
-		<p class="back-link font-sans text-small"><a href={resolve('/blog')}>← Back to Engineering Notes</a></p>
-		<p class="kicker uppercase font-sans text-small">Engineering Breakdown</p>
-		<h1>{data.post.title}</h1>
-		<p class="post-meta font-sans text-small text-muted">
-			{fullDate.format(new Date(data.post.publishedAt))}
-			{#if data.post.readingMinutes}
-				· {data.post.readingMinutes} min read
-			{/if}
-		</p>
-		<p class="deck text-muted">{data.post.excerpt}</p>
+<svelte:window onscroll={handleScroll} />
 
-		<div class="post-body hairline-top">
-			{#each blocks as block, index (`${index}-${block.text.slice(0, 20)}`)}
-				{#if block.style === 'h1' || block.style === 'h2'}
-					<h2>{block.text}</h2>
-				{:else if block.style === 'h3'}
-					<h3>{block.text}</h3>
-				{:else if block.style === 'h4'}
-					<h4>{block.text}</h4>
-				{:else if block.style === 'blockquote'}
-					<blockquote>{block.text}</blockquote>
-				{:else}
-					<p>{block.text}</p>
-				{/if}
-			{/each}
+{#if showProgressBar}
+	<div class="progress-bar" style:width="{scrollProgress * 100}%"></div>
+{/if}
+
+<Seo title={data.meta.title} description={data.meta.excerpt} image={data.meta.image} />
+
+<article class="post container">
+	<a href="/blog" class="post__back">&larr; Back to Blog</a>
+	<header class="post__header">
+		<div class="post__meta">
+			<time datetime={data.meta.date}>{formatDate(data.meta.date)}</time>
+			<span>&middot;</span>
+			<span>{data.meta.readingMinutes} min read</span>
 		</div>
-	</article>
-</main>
+		<h1 class="post__title">{data.meta.title}</h1>
+		{#if data.meta.tags.length}
+			<div class="post__tags">
+				{#each data.meta.tags as tag}
+					<span class="post__tag">{tag}</span>
+				{/each}
+			</div>
+		{/if}
+	</header>
+	<div class="prose">
+		<data.component />
+	</div>
+</article>
 
 <style>
-	.blog-post-page {
-		margin-bottom: var(--spacing-xl);
+	.progress-bar {
+		position: fixed;
+		top: 4rem;
+		left: 0;
+		height: 2px;
+		background: var(--color-accent);
+		z-index: 11;
+		transition: width 50ms linear;
 	}
 
 	.post {
-		max-width: 860px;
+		padding-block: 4rem;
+		max-width: var(--prose-width);
 	}
 
-	.kicker {
-		margin-bottom: var(--spacing-xs);
+	.post__back {
+		display: inline-block;
+		font-size: var(--text-sm);
+		color: var(--color-text-muted);
+		margin-bottom: 2rem;
+		transition: color var(--transition-fast);
 	}
 
-	.back-link {
-		margin-bottom: var(--spacing-sm);
+	.post__back:hover {
+		color: var(--color-text);
 	}
 
-	h1 {
-		font-size: clamp(2.1rem, 5vw, 3.4rem);
-		margin-bottom: var(--spacing-xs);
+	.post__header {
+		margin-bottom: 2.5rem;
+		padding-bottom: 2rem;
+		border-bottom: 1px solid var(--color-border-subtle);
 	}
 
-	.post-meta {
-		margin-bottom: var(--spacing-sm);
+	.post__meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: var(--text-sm);
+		color: var(--color-text-muted);
+		margin-bottom: 0.75rem;
 	}
 
-	.deck {
-		font-size: 1.15rem;
-		margin-bottom: var(--spacing-md);
-		max-width: 72ch;
+	.post__title {
+		font-size: var(--text-3xl);
+		font-weight: 700;
+		line-height: 1.15;
+		margin-bottom: 1rem;
 	}
 
-	.post-body {
-		padding-top: var(--spacing-md);
-		column-count: 1;
-		text-align: justify;
-		hyphens: auto;
+	.post__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 	}
 
-	.post-body p {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.post-body h2,
-	.post-body h3,
-	.post-body h4 {
-		margin-top: var(--spacing-md);
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.post-body h2 {
-		font-size: clamp(1.5rem, 3vw, 2rem);
-	}
-
-	.post-body h3 {
-		font-size: clamp(1.25rem, 2.2vw, 1.65rem);
-	}
-
-	.post-body h4 {
-		font-size: clamp(1.1rem, 1.8vw, 1.3rem);
-		font-family: var(--font-sans);
-	}
-
-	.post-body blockquote {
-		margin: 0 0 var(--spacing-md);
-		padding-left: var(--spacing-sm);
-		border-left: 2px solid var(--color-hairline);
-		color: var(--color-muted);
-		font-style: italic;
+	.post__tag {
+		font-size: 0.75rem;
+		padding: 0.15rem 0.5rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border-subtle);
+		border-radius: var(--radius-sm);
+		color: var(--color-text-muted);
 	}
 </style>

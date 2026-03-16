@@ -1,0 +1,19 @@
+---
+title: "Portfolio Website"
+slug: "portfolio-website"
+date: "2026-03-01"
+excerpt: "Personal portfolio built with SvelteKit, mdsvex, and Open Props."
+tags: ["svelte", "web-dev"]
+url: "https://github.com/matthewkolnicki/portfolio"
+---
+
+# Portfolio Website
+
+A dark-themed portfolio site built from scratch with SvelteKit. Uses mdsvex for blog content, Open Props for design tokens, and the View Transitions API for smooth navigation.
+
+## Features
+
+- Dark theme with custom design tokens
+- Blog posts as `.svx` files with embedded Svelte components
+- Responsive CSS Grid layouts
+- View Transitions for page navigation

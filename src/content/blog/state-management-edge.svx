@@ -1,0 +1,9 @@
+---
+title: "State Management at the Edge"
+date: "2023-11-05T10:00:00.000Z"
+excerpt: "Leveraging Svelte 5 Runes for fine-grained reactivity directly deployed to Edge infrastructure."
+image: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=1600&h=800"
+tags: ["SvelteKit", "Runes", "Edge Compute"]
+---
+
+The transition from standard stores to Runes opened an entirely new paradigm for edge deployments...

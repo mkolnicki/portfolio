@@ -1,0 +1,9 @@
+---
+title: "The Noise Protocol"
+date: "2023-09-18T10:00:00.000Z"
+excerpt: "Generating mathematical SVG static per-pixel to ensure clinical black backgrounds feel tactile and physical."
+image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1600&h=800"
+tags: ["SVG", "Math", "Creative Coding"]
+---
+
+Pure `#000` is deeply unnatural to the human eye. To solve this...

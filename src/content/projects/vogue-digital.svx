@@ -1,0 +1,11 @@
+---
+title: "Vogue Digital Asset Management"
+date: "2023-04-05"
+excerpt: "Editorial platform engineering mapping thousands of high-res assets seamlessly to the edge."
+image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1500&auto=format&fit=crop"
+tags: ["Editorial", "Cloudflare", "UX Architecture"]
+url: "#"
+draft: false
+---
+
+A bespoke edge-first content management suite specifically designed for lightning-fast editorial load times.

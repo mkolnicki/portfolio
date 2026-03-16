@@ -1,34 +1,68 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import { onNavigate } from '$app/navigation';
 
 	let { children } = $props();
+
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	});
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
-<div class="site-shell">
+<div class="app">
 	<Header />
-
-	<main class="route-content">
+	<main id="main-content" class="main">
 		{@render children()}
 	</main>
-
 	<Footer />
 </div>
 
 <style>
-	.site-shell {
-		min-height: 100vh;
-		display: flex;
-		flex-direction: column;
+	.skip-link {
+		position: absolute;
+		top: -100%;
+		left: 1rem;
+		z-index: 100;
+		padding: 0.5rem 1rem;
+		background: var(--color-accent);
+		color: var(--color-bg);
+		border-radius: var(--radius-sm);
+		font-size: var(--text-sm);
+		font-weight: 600;
 	}
 
-	.route-content {
+	.skip-link:focus {
+		top: 0.5rem;
+	}
+
+	.app {
+		display: flex;
+		flex-direction: column;
+		min-height: 100dvh;
+		position: relative;
+	}
+
+	.app::before {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background: var(--bg-noise);
+		opacity: 0.03;
+		pointer-events: none;
+		z-index: 100;
+	}
+
+	.main {
 		flex: 1;
 	}
 </style>

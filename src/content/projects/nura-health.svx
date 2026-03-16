@@ -1,0 +1,11 @@
+---
+title: "Nura Health Diagnostics"
+date: "2024-01-15"
+excerpt: "Precision longevity medicine powered by biological data architecture and predictive modeling."
+image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=1500&auto=format&fit=crop"
+tags: ["Architecture", "LLMs", "HealthTech"]
+url: "#"
+draft: false
+---
+
+A complete overhaul of the Nura platform utilizing high-fidelity web engineering and cinematic interaction models for medical analytics.

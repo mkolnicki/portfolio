@@ -1,223 +1,140 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 
-	let theme = $state('light');
-	type NavLink = {
-		href: '/' | '/projects' | '/blog' | '/about';
-		label: string;
-	};
-
-	const navLinks: NavLink[] = [
+	const links = [
 		{ href: '/', label: 'Home' },
 		{ href: '/projects', label: 'Projects' },
-		{ href: '/blog', label: 'Blog' },
-		{ href: '/about', label: 'About' }
+		{ href: '/blog', label: 'Blog' }
 	];
 
-	function isActivePath(href: string) {
-		const pathname = page.url.pathname;
-		return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
-	}
-
-	onMount(() => {
-		theme = localStorage.getItem('theme') || 'light';
-		applyTheme(theme);
-	});
-
-	function applyTheme(resolvedTheme: string) {
-		document.body?.classList.remove('light', 'dark', 'natural');
-		document.body?.classList.add(resolvedTheme);
-	}
-
-	function toggleTheme() {
-		const themes = ['light', 'natural', 'dark'];
-		const currentIndex = themes.indexOf(theme);
-		const newTheme = themes[(currentIndex + 1) % themes.length];
-
-		theme = newTheme;
-		localStorage.setItem('theme', newTheme);
-		applyTheme(newTheme);
-	}
+	let scrollY = $state(0);
+	let scrolled = $derived(scrollY > 50);
 </script>
 
-<header class="masthead">
-	<div class="masthead-title-row">
-		<h1 class="masthead-title">Matthew Kolnicki</h1>
-		<div class="masthead-actions">
-			<button
-				class="toggle-btn font-sans text-small"
-				aria-label="Toggle theme"
-				onclick={toggleTheme}
-			>
-				<svg
-					class="icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					{#if theme === 'light'}
-						<circle cx="12" cy="12" r="5"></circle>
-						<line x1="12" y1="1" x2="12" y2="3"></line>
-						<line x1="12" y1="21" x2="12" y2="23"></line>
-						<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-						<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-						<line x1="1" y1="12" x2="3" y2="12"></line>
-						<line x1="21" y1="12" x2="23" y2="12"></line>
-						<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-						<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-					{:else if theme === 'dark'}
-						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-					{:else}
-						<path d="M12 22v-8"></path>
-						<path d="M5 12a7 7 0 0 1 7 7 7 7 0 0 1-7-7z"></path>
-						<path d="M19 8a7 7 0 0 0-7 7 7 7 0 0 0 7-7z"></path>
-					{/if}
-				</svg>
-				<span>{theme === 'light' ? 'Light' : theme === 'natural' ? 'Natural' : 'Dark'}</span>
-			</button>
-		</div>
-	</div>
+<svelte:window bind:scrollY />
 
-	<nav class="masthead-nav thick-top hairline-bottom">
-		<ul class="nav-list font-serif">
-			{#each navLinks as link (link.href)}
-				<li>
-					<a href={resolve(link.href)} class:active={isActivePath(link.href)}>{link.label}</a>
-				</li>
-			{/each}
-		</ul>
-	</nav>
+<header class="header" class:header--scrolled={scrolled}>
+	<div class="header__inner">
+		<nav class="header__nav" aria-label="Main navigation">
+			<a href="/" class="header__logo" aria-label="Home page">MK</a>
+			<ul class="header__links">
+				{#each links as { href, label }}
+					<li>
+						<a {href} class="header__link" aria-current={page.url.pathname === href ? 'page' : undefined}>
+							{label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+			<a href="mailto:contact@example.com" class="header__cta">Get in Touch</a>
+		</nav>
+	</div>
 </header>
 
 <style>
-	.masthead {
-		max-width: 100%;
-		padding-inline: clamp(1rem, 4vw, 3rem);
-		padding-top: var(--spacing-md);
-		padding-bottom: var(--spacing-md);
-		text-align: center;
-	}
-
-	.masthead-title-row {
-		--actions-space: clamp(6rem, 14vw, 9rem);
-		position: relative;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 100%;
-		padding-inline: var(--actions-space);
-		margin-bottom: var(--spacing-sm);
-		min-height: 2.25rem;
-	}
-
-	.masthead-title {
-		font-size: clamp(1.7rem, 2.8vw, 2.45rem);
-		font-weight: 400;
-		margin: 0;
-		letter-spacing: -0.01em;
-		line-height: 1.05;
-	}
-
-	.masthead-actions {
-		position: absolute;
+	.header {
+		position: fixed;
+		top: 0;
+		left: 0;
 		right: 0;
-		top: 50%;
-		transform: translateY(-50%);
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-
-	.masthead-nav {
-		padding: var(--spacing-sm) 0;
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.nav-list {
+		z-index: 50;
+		padding: 1.5rem 1rem;
+		transition: padding var(--transition-base), transform var(--transition-base);
 		display: flex;
 		justify-content: center;
-		gap: var(--spacing-xl);
-		list-style: none;
-		margin: 0;
-		padding: 0;
+		pointer-events: none;
 	}
 
-	.nav-list a {
-		position: relative;
-		display: inline-flex;
-		padding: 0.2rem 0.35rem;
-		border-radius: 0.15rem;
-		font-size: 1.23rem;
+	.header--scrolled {
+		padding: 1rem;
 	}
 
-	.nav-list a:hover {
-		color: color-mix(in srgb, var(--text-color) 75%, var(--accent) 25%);
-		text-decoration: underline;
-		text-decoration-color: color-mix(in srgb, var(--accent) 65%, transparent);
+	.header__inner {
+		pointer-events: auto;
+		width: 100%;
+		max-width: 48rem;
+		border-radius: 100px;
+		background-color: transparent;
+		transition: background-color var(--transition-base), box-shadow var(--transition-base), border var(--transition-base);
+		border: 1px solid transparent;
+		padding: 0 1.5rem;
 	}
 
-	.nav-list a.active {
-		color: color-mix(in srgb, var(--text-color) 72%, var(--accent) 28%);
-		text-decoration: underline;
-		text-decoration-thickness: 1px;
-		text-underline-offset: 5px;
-		text-decoration-color: color-mix(in srgb, var(--accent) 72%, transparent);
+	.header--scrolled .header__inner {
+		background-color: color-mix(in srgb, var(--color-bg) 75%, transparent);
+		backdrop-filter: blur(16px);
+		border-color: var(--color-border-subtle);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 	}
 
-	.toggle-btn {
+	.header__nav {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		background: var(--surface-1);
-		border: 1px solid var(--border-color);
-		color: var(--text-color);
-		border-radius: 99px;
-		padding: 0.25rem 0.75rem;
-		cursor: pointer;
-		box-shadow: var(--shadow-sm);
+		justify-content: space-between;
+		height: 3.5rem;
 	}
 
-	.toggle-btn:hover {
-		background: var(--surface-elevated);
-		color: var(--accent);
+	.header__logo {
+		font-weight: 700;
+		font-size: var(--text-lg);
+		color: var(--color-text);
+		letter-spacing: -0.02em;
+		transition: color var(--transition-fast);
+	}
+
+	.header__logo:hover {
+		color: var(--color-accent-hover);
+	}
+
+	.header__links {
+		display: flex;
+		gap: 1.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.header__links {
+			gap: 2rem;
+		}
+	}
+
+	.header__link {
+		position: relative;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--color-text-muted);
+		transition: color var(--transition-fast), transform var(--transition-fast);
+		display: inline-block;
+	}
+
+	.header__link:hover {
+		color: var(--color-text);
 		transform: translateY(-1px);
 	}
 
-	.toggle-btn:active {
-		transform: translateY(0);
+	.header__link[aria-current='page'] {
+		color: var(--color-text);
 	}
 
-	.icon {
-		width: 1rem;
-		height: 1rem;
+	.header__cta {
+		display: none;
+		align-items: center;
+		padding: 0.5rem 1.25rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--color-bg);
+		background-color: var(--color-accent);
+		border-radius: 100px;
+		transition: transform 250ms var(--ease-spring), background-color var(--transition-fast);
 	}
 
-	@media (max-width: 600px) {
-		.masthead-title-row {
-			display: grid;
-			grid-template-columns: 1fr;
-			width: auto;
-			padding-inline: 0;
-			gap: var(--spacing-xs);
-			min-height: 0;
-		}
-		.masthead-title {
-			grid-column: 1;
-		}
-		.masthead-actions {
-			position: static;
-			transform: none;
-			grid-column: 1;
-			justify-self: center;
-		}
-		.nav-list {
-			gap: var(--spacing-md);
-			flex-wrap: wrap;
+	.header__cta:hover {
+		transform: scale(1.03) translateY(-1px);
+		background-color: var(--color-accent-hover);
+	}
+
+	@media (min-width: 640px) {
+		.header__cta {
+			display: flex;
 		}
 	}
 </style>

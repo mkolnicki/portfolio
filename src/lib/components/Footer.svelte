@@ -1,117 +1,169 @@
-<script lang="ts">
-	type SocialLink = {
-		name: 'LinkedIn' | 'X' | 'GitHub';
-		href: string;
-	};
+<footer class="footer">
+	<div class="footer__inner container">
+		<div class="footer__brand">
+			<span class="footer__logo">MK</span>
+			<p class="footer__tagline">Crafting digital instruments.</p>
+		</div>
+		
+		<div class="footer__grid">
+			<div class="footer__column">
+				<h4 class="footer__heading">Navigation</h4>
+				<ul class="footer__links">
+					<li><a href="/">Home</a></li>
+					<li><a href="/projects">Projects</a></li>
+					<li><a href="/blog">Writing</a></li>
+				</ul>
+			</div>
+			<div class="footer__column">
+				<h4 class="footer__heading">Connect</h4>
+				<ul class="footer__links">
+					<li><a href="https://github.com/matthewkolnicki" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+					<li><a href="https://linkedin.com/in/matthewkolnicki" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+					<li><a href="https://x.com/matthewkolnicki" target="_blank" rel="noopener noreferrer">X</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
 
-	const socialLinks: SocialLink[] = [
-		{ name: 'LinkedIn', href: 'https://www.linkedin.com/in/mattkolnicki/' },
-		{ name: 'X', href: 'https://x.com/MattKolnicki' },
-		{ name: 'GitHub', href: 'https://github.com/mkolnicki' }
-	];
-</script>
-
-<footer class="site-footer container hairline-top" aria-label="Footer">
-	<div class="footer-row">
-		<p class="footer-copy font-sans text-small text-muted">Connect with me</p>
-		<ul class="social-links" aria-label="Social links">
-			{#each socialLinks as link (link.name)}
-				<li>
-					<a
-						class="social-link"
-						href={link.href}
-						target="_blank"
-						rel="noreferrer"
-						aria-label={link.name}
-						title={link.name}
-					>
-						{#if link.name === 'LinkedIn'}
-							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-								<path
-									d="M6.94 8.5a1.56 1.56 0 1 1 0-3.12 1.56 1.56 0 0 1 0 3.12zM5.62 10h2.65v8.37H5.62V10zM10.02 10h2.54v1.14h.04c.35-.67 1.22-1.37 2.5-1.37 2.67 0 3.16 1.76 3.16 4.05v4.55H15.6v-4.03c0-.96-.02-2.2-1.34-2.2-1.35 0-1.56 1.05-1.56 2.13v4.1h-2.68V10z"
-								/>
-							</svg>
-						{:else if link.name === 'X'}
-							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-								<path
-									d="M18.9 3.1h2.94l-6.42 7.34 7.56 10.46h-5.92l-4.64-6.36-5.56 6.36H3.9l6.87-7.85L3.52 3.1h6.07l4.19 5.77L18.9 3.1zm-1.04 15.97h1.63L8.71 4.84H6.96l10.9 14.23z"
-								/>
-							</svg>
-						{:else}
-							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-								<path
-									d="M12 2a10 10 0 0 0-3.16 19.49c.5.1.68-.22.68-.48v-1.87c-2.78.6-3.37-1.19-3.37-1.19-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.61.07-.61 1 .07 1.52 1.02 1.52 1.02.89 1.52 2.34 1.08 2.91.83.09-.64.35-1.08.64-1.33-2.22-.25-4.55-1.1-4.55-4.9 0-1.08.39-1.97 1.02-2.66-.1-.25-.44-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.7.11 2.5.33 1.9-1.29 2.74-1.02 2.74-1.02.55 1.37.21 2.39.1 2.64.64.69 1.02 1.58 1.02 2.66 0 3.82-2.34 4.65-4.57 4.9.36.31.68.92.68 1.86v2.75c0 .27.18.59.69.48A10 10 0 0 0 12 2z"
-								/>
-							</svg>
-						{/if}
-					</a>
-				</li>
-			{/each}
-		</ul>
+	<div class="footer__bottom container">
+		<p class="footer__copy">&copy; {new Date().getFullYear()} Matthew Kolnicki</p>
+		<div class="footer__system-status">
+			<span class="status-dot"></span>
+			<span class="status-text">SYSTEM OPERATIONAL</span>
+		</div>
 	</div>
 </footer>
 
 <style>
-	.site-footer {
-		padding-top: var(--spacing-md);
-		padding-bottom: var(--spacing-lg);
-		margin-top: var(--spacing-xl);
+	.footer {
+		background-color: var(--color-bg-subtle);
+		border-top: 1px solid var(--color-border-subtle);
+		border-top-left-radius: 4rem;
+		border-top-right-radius: 4rem;
+		padding-top: 5rem;
+		padding-bottom: 2rem;
+		margin-top: 4rem;
+		display: flex;
+		flex-direction: column;
+		gap: 4rem;
 	}
 
-	.footer-row {
+	.footer__inner {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 3rem;
+	}
+
+	@media (min-width: 768px) {
+		.footer__inner {
+			grid-template-columns: 1fr 2fr;
+		}
+	}
+
+	.footer__brand {
+		max-width: 16rem;
+	}
+
+	.footer__logo {
+		font-family: var(--font-body);
+		font-weight: 700;
+		font-size: var(--text-2xl);
+		color: var(--color-text);
+		display: block;
+		margin-bottom: 0.5rem;
+	}
+
+	.footer__tagline {
+		font-size: var(--text-sm);
+		color: var(--color-text-muted);
+		line-height: 1.5;
+	}
+
+	.footer__grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 2rem;
+	}
+
+	.footer__heading {
+		font-size: 0.75rem;
+		font-family: var(--font-mono);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-text);
+		margin-bottom: 1.5rem;
+	}
+
+	.footer__links {
 		display: flex;
-		flex-wrap: wrap;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.footer__links a {
+		font-size: var(--text-sm);
+		color: var(--color-text-muted);
+		transition: color var(--transition-fast);
+	}
+
+	.footer__links a:hover {
+		color: var(--color-accent);
+	}
+
+	.footer__bottom {
+		display: flex;
+		flex-direction: column-reverse;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--spacing-md);
+		gap: 1.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--color-border-subtle);
 	}
 
-	.footer-copy {
-		margin: 0;
+	@media (min-width: 640px) {
+		.footer__bottom {
+			flex-direction: row;
+		}
 	}
 
-	.social-links {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		list-style: none;
-		margin: 0;
-		padding: 0;
+	.footer__copy {
+		font-size: var(--text-sm);
+		color: var(--color-text-muted);
 	}
 
-	.social-link {
+	.footer__system-status {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.35rem 0.65rem;
-		border: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
-		border-radius: 99px;
-		background: var(--surface-1);
-		box-shadow: var(--shadow-sm);
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border-subtle);
+		border-radius: 100px;
 	}
 
-	.social-link svg {
-		width: 1rem;
-		height: 1rem;
-		fill: currentColor;
-		color: var(--accent);
-		flex-shrink: 0;
+	.status-dot {
+		width: 8px;
+		height: 8px;
+		background-color: #10B981; /* Primary Green */
+		border-radius: 50%;
+		animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 
-	.social-link:hover {
-		color: var(--accent);
-		background: var(--surface-elevated);
-		transform: translateY(-1px);
+	.status-text {
+		font-family: var(--font-mono);
+		font-size: 0.625rem;
+		color: #10B981;
+		font-weight: 600;
+		letter-spacing: 0.05em;
 	}
 
-	.social-link:active {
-		transform: translateY(0);
-	}
-
-	@media (max-width: 700px) {
-		.footer-row {
-			flex-direction: column;
-			align-items: flex-start;
+	@keyframes pulse-green {
+		0%, 100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: .3;
 		}
 	}
 </style>

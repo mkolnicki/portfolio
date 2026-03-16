@@ -1,0 +1,22 @@
+---
+title: "Hello World"
+slug: "hello-world"
+date: "2026-03-15"
+excerpt: "Welcome to my new blog — rebuilt from scratch with SvelteKit and mdsvex."
+featured: true
+readingMinutes: 3
+image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1600&h=800"
+tags: ["svelte", "web-dev"]
+---
+
+# Hello World
+
+Welcome to my rebuilt portfolio. This site is powered by **SvelteKit** with content authored in `.svx` files using mdsvex — giving me the full power of Svelte components inside markdown.
+
+## Why mdsvex?
+
+Traditional CMS setups add complexity. With mdsvex, every blog post is a file I can version control, and I can embed interactive Svelte components directly in my writing.
+
+## What's next
+
+I'll be writing about AI, web development, and the projects I'm building. Stay tuned.

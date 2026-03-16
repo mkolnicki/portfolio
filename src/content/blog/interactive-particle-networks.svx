@@ -1,0 +1,61 @@
+---
+title: "Interactive Particle Networks"
+slug: "interactive-particle-networks"
+date: "2026-03-15"
+excerpt: "Building a mouse-reactive particle network animation with Svelte 5 and SVG — no canvas, no libraries."
+featured: true
+readingMinutes: 4
+image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1600&h=800"
+tags: ["svelte", "animation", "creative-coding"]
+---
+
+<script>
+	import ParticleNetwork from '$lib/components/ParticleNetwork.svelte';
+</script>
+
+# Interactive Particle Networks
+
+One of my favorite things about writing with mdsvex is embedding **live, interactive components** directly in blog posts. No iframes, no screenshots — real Svelte components running inline.
+
+Here's a particle network that reacts to your mouse:
+
+<ParticleNetwork />
+
+Move your cursor over the visualization. The nodes drift with a gentle organic motion and are pulled toward your pointer. Lines connect nearby particles, forming and dissolving as the network shifts.
+
+## How it works
+
+The animation is pure SVG — no `<canvas>`, no external libraries. A grid of particles floats with sinusoidal motion, and mouse proximity adds an attraction force.
+
+The core loop is straightforward:
+
+```ts
+for (const p of particles) {
+  const dx = mouseX - p.baseX;
+  const dy = mouseY - p.baseY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const influence = Math.max(0, 1 - dist / 200);
+
+  p.x = p.baseX + Math.sin(t + p.phase) * 8 + dx * influence * 0.08;
+  p.y = p.baseY + Math.cos(t * 0.7 + p.phase) * 8 + dy * influence * 0.08;
+}
+```
+
+Each particle has a **base position** on a grid, a random **phase offset** for organic variety, and gets nudged toward the cursor based on distance. Connections are drawn between any two particles within a threshold, with opacity fading as they drift apart.
+
+## Why SVG over Canvas?
+
+For this particle count (~96 nodes), SVG works well and has some advantages:
+
+- **Declarative rendering** — Svelte's `{#each}` block handles the DOM diffing
+- **CSS integration** — colors come straight from CSS custom properties (`var(--color-accent)`)
+- **Accessibility** — the container has `role="img"` and an `aria-label`
+- **Simplicity** — no pixel-ratio handling, no manual clear/redraw cycle
+
+For hundreds or thousands of particles, Canvas or WebGL would be the better choice. But for a tasteful decorative element, SVG keeps the code minimal.
+
+## Respecting user preferences
+
+The site already includes a global `prefers-reduced-motion` rule that kills animations. The particle component also includes a pause/play toggle so users can stop the motion without changing system settings.
+
+Small details like these matter — animation should enhance, not annoy.
