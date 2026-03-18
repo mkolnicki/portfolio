@@ -40,7 +40,7 @@
 					</li>
 				{/each}
 			</ul>
-			<a href="mailto:contact@example.com" class="header__cta">Get in Touch</a>
+			<a href="mailto:hello@matthewkolnicki.com" class="header__cta">Get in Touch</a>
 		</nav>
 	</div>
 </header>

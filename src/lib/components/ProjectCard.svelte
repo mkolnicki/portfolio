@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Project } from '$lib/utils/content';
 	import { getDemoComponent } from '$lib/registry/demoRegistry';
-	import { browser } from '$app/environment';
 	import { spotlight } from '$lib/actions/spotlight';
 	import { reveal } from '$lib/actions/reveal';
+	import { inView } from '$lib/actions/inView';
 
 	interface Props {
 		project: Project;
@@ -15,23 +15,10 @@
 	// svelte-ignore state_referenced_locally
 	const Demo = getDemoComponent(project.slug);
 
-	let el: HTMLAnchorElement | undefined = $state();
 	let active = $state(false);
-
-	$effect(() => {
-		if (!browser || !el) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				active = entry.isIntersecting;
-			},
-			{ threshold: 0.2 }
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	});
 </script>
 
-<a href="/projects/{project.slug}" class="project-card" use:spotlight use:reveal={{ delay, distance: '20px', duration: 500 }} bind:this={el}>
+<a href="/projects/{project.slug}" class="project-card" use:spotlight use:reveal={{ delay, distance: '20px', duration: 500 }} use:inView={{ onChange: (v) => active = v }}>
 	{#if Demo}
 		<div class="project-card__demo" aria-hidden="true">
 			<Demo {active} />

@@ -178,6 +178,7 @@
 			const influenceRadiusSq = 200 * 200;
 
 			const pts = particles;
+			const newPts = new Array<Particle>(pts.length);
 			for (let i = 0; i < pts.length; i++) {
 				const p = pts[i];
 				// Sinusoidal drift force
@@ -199,23 +200,28 @@
 				const springFx = (p.baseX - p.x) * 0.005;
 				const springFy = (p.baseY - p.y) * 0.005;
 
-				// Accumulate forces into velocity
-				p.vx += driftFx + mouseFx + springFx;
-				p.vy += driftFy + mouseFy + springFy;
+				// Accumulate forces into velocity, then damp
+				const vx = (p.vx + driftFx + mouseFx + springFx) * DAMPING;
+				const vy = (p.vy + driftFy + mouseFy + springFy) * DAMPING;
 
-				// Damping
-				p.vx *= DAMPING;
-				p.vy *= DAMPING;
-
-				// Integrate
-				p.x += p.vx;
-				p.y += p.vy;
+				// New object reference so $state.raw detects the change
+				newPts[i] = {
+					id: p.id,
+					baseX: p.baseX,
+					baseY: p.baseY,
+					x: p.x + vx,
+					y: p.y + vy,
+					vx,
+					vy,
+					size: p.size,
+					phase: p.phase
+				};
 			}
 
-			// Compute connections with spatial hash
-			connections = computeConnections(pts, connectionDist, mx, my);
-			// New array reference triggers Svelte re-render for $state.raw
-			particles = pts.slice();
+			// Compute connections with spatial hash (uses new positions)
+			connections = computeConnections(newPts, connectionDist, mx, my);
+			// New array + new object refs triggers Svelte re-render
+			particles = newPts;
 
 			raf = requestAnimationFrame(tick);
 		}

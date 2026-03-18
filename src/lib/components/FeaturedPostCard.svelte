@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { BlogPost } from '$lib/utils/content';
 	import { getDemoComponent } from '$lib/registry/demoRegistry';
-	import { browser } from '$app/environment';
 	import { formatDate } from '$lib/utils/formatDate';
 	import { spotlight } from '$lib/actions/spotlight';
 	import { reveal } from '$lib/actions/reveal';
+	import { inView } from '$lib/actions/inView';
 
 	interface Props {
 		post: BlogPost;
@@ -15,23 +15,10 @@
 	// svelte-ignore state_referenced_locally
 	const Demo = getDemoComponent(post.slug);
 
-	let el: HTMLAnchorElement | undefined = $state();
 	let active = $state(false);
-
-	$effect(() => {
-		if (!browser || !el) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				active = entry.isIntersecting;
-			},
-			{ threshold: 0.2 }
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	});
 </script>
 
-<a href="/blog/{post.slug}" class="featured-post" use:spotlight use:reveal={{ delay: 0, distance: '24px', duration: 600 }} bind:this={el}>
+<a href="/blog/{post.slug}" class="featured-post" use:spotlight use:reveal={{ delay: 0, distance: '24px', duration: 600 }} use:inView={{ onChange: (v) => active = v }}>
 	{#if Demo}
 		<div class="featured-post__demo" aria-hidden="true">
 			<Demo {active} />
@@ -128,7 +115,7 @@
 	.featured-post__overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to top, rgba(13, 13, 18, 0.95) 0%, rgba(13, 13, 18, 0.4) 50%, rgba(13, 13, 18, 0.15) 100%);
+		background: linear-gradient(to top, color-mix(in srgb, var(--color-bg) 95%, transparent) 0%, color-mix(in srgb, var(--color-bg) 40%, transparent) 50%, color-mix(in srgb, var(--color-bg) 15%, transparent) 100%);
 		z-index: 1;
 	}
 
@@ -202,7 +189,7 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: var(--color-accent);
-		border: 1px solid rgba(201, 168, 76, 0.3);
+		border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
 		padding: 0.2rem 0.6rem;
 		border-radius: var(--radius-sm);
 	}

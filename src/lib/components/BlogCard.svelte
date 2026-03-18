@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { BlogPost } from '$lib/utils/content';
 	import { getDemoComponent } from '$lib/registry/demoRegistry';
-	import { browser } from '$app/environment';
 	import { formatDate } from '$lib/utils/formatDate';
 	import { spotlight } from '$lib/actions/spotlight';
 	import { reveal } from '$lib/actions/reveal';
+	import { inView } from '$lib/actions/inView';
 
 	interface Props {
 		post: BlogPost;
@@ -16,23 +16,10 @@
 	// svelte-ignore state_referenced_locally
 	const Demo = getDemoComponent(post.slug);
 
-	let el: HTMLAnchorElement | undefined = $state();
 	let active = $state(false);
-
-	$effect(() => {
-		if (!browser || !el) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				active = entry.isIntersecting;
-			},
-			{ threshold: 0.2 }
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	});
 </script>
 
-<a href="/blog/{post.slug}" class="blog-card" use:spotlight use:reveal={{ delay, distance: '20px', duration: 500 }} bind:this={el}>
+<a href="/blog/{post.slug}" class="blog-card" use:spotlight use:reveal={{ delay, distance: '20px', duration: 500 }} use:inView={{ onChange: (v) => active = v }}>
 	{#if Demo}
 		<div class="blog-card__demo" aria-hidden="true">
 			<Demo {active} />

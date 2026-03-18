@@ -4,9 +4,26 @@
 	const SCENE_URL = 'https://my.spline.design/claritystream-t955kHdpxZf0c0E6x0YCvdrA/scene.splinecode';
 
 	let canvasEl: HTMLCanvasElement | undefined = $state();
+	let containerEl: HTMLDivElement | undefined = $state();
+	let loaded = $state(false);
 
 	$effect(() => {
-		if (!browser || !canvasEl) return;
+		if (!browser || !containerEl) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting && !loaded) {
+					loaded = true;
+					observer.disconnect();
+				}
+			},
+			{ threshold: 0, rootMargin: '200px' }
+		);
+		observer.observe(containerEl);
+		return () => observer.disconnect();
+	});
+
+	$effect(() => {
+		if (!browser || !canvasEl || !loaded) return;
 
 		let disposed = false;
 		let app: import('@splinetool/runtime').Application | undefined;
@@ -24,7 +41,7 @@
 	});
 </script>
 
-<div class="hero-bg" role="presentation">
+<div class="hero-bg" role="presentation" bind:this={containerEl}>
 	<canvas bind:this={canvasEl} class="spline-canvas"></canvas>
 </div>
 

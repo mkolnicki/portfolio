@@ -10,7 +10,7 @@
 
 	let activeTag = $state<string | null>(null);
 
-	const allTags = $derived(() => {
+	const allTags = $derived.by(() => {
 		const tagSet = new Set<string>();
 		for (const p of data.posts) {
 			for (const t of p.tags) tagSet.add(t);
@@ -20,13 +20,13 @@
 
 	const featuredPost = $derived(data.posts.find((p) => p.featured) ?? null);
 
-	const remaining = $derived(() => {
+	const remaining = $derived.by(() => {
 		const rest = data.posts.filter((p) => p !== featuredPost);
 		if (!activeTag) return rest;
 		return rest.filter((p) => p.tags.includes(activeTag!));
 	});
 
-	const featuredVisible = $derived(() => {
+	const featuredVisible = $derived.by(() => {
 		if (!activeTag) return true;
 		return featuredPost?.tags.includes(activeTag!) ?? false;
 	});
@@ -37,25 +37,25 @@
 <BlogHero count={data.posts.length} />
 
 <div class="blog-page container">
-	{#if allTags().length > 1}
+	{#if allTags.length > 1}
 		<div class="blog-page__filters" use:reveal={{ delay: 100, distance: '12px' }}>
-			<TagFilter tags={allTags()} {activeTag} onchange={(tag) => (activeTag = tag)} />
+			<TagFilter tags={allTags} {activeTag} onchange={(tag) => (activeTag = tag)} />
 		</div>
 	{/if}
 
-	{#if featuredPost && featuredVisible()}
+	{#if featuredPost && featuredVisible}
 		<div class="blog-page__featured">
 			<FeaturedPostCard post={featuredPost} />
 		</div>
 	{/if}
 
-	{#if remaining().length}
+	{#if remaining.length}
 		<div class="grid">
-			{#each remaining() as post, i (post.slug)}
+			{#each remaining as post, i (post.slug)}
 				<BlogCard {post} delay={i * 80} />
 			{/each}
 		</div>
-	{:else if !featuredPost || !featuredVisible()}
+	{:else if !featuredPost || !featuredVisible}
 		<p class="blog-page__empty">No posts match this filter.</p>
 	{/if}
 </div>

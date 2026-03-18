@@ -224,7 +224,7 @@
 		height: 100vh;
 		display: flex;
 		align-items: center;
-		overflow: hidden;
+		overflow: clip;
 	}
 
 	.showcase-stack__anchor {

@@ -14,5 +14,5 @@
 	width: 100%;
 	max-width: var(--max-width);
 	margin-inline: auto;
-	padding-inline: var(--size-fluid-3, 1.5rem);
+	padding-inline: 1.5rem;
 }

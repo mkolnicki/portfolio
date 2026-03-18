@@ -1,4 +1,4 @@
-import type { SvelteComponent } from 'svelte';
+import type { Component } from 'svelte';
 
 export interface BlogPost {
 	title: string;
@@ -24,7 +24,7 @@ export interface Project {
 }
 
 interface MdsvexModule {
-	default: typeof SvelteComponent;
+	default: Component;
 	metadata: Record<string, unknown>;
 }
 
@@ -35,44 +35,34 @@ function extractSlug(path: string): string {
 	return path.split('/').pop()!.replace('.svx', '');
 }
 
-export function getBlogPosts(): BlogPost[] {
-	return Object.entries(blogModules)
+function getItems<T extends { date: string }>(modules: Record<string, MdsvexModule>): T[] {
+	return Object.entries(modules)
 		.map(([path, mod]) => ({
-			...(mod.metadata as unknown as BlogPost),
-			slug: mod.metadata.slug as string ?? extractSlug(path)
+			...(mod.metadata as unknown as T),
+			slug: (mod.metadata.slug as string) ?? extractSlug(path)
 		}))
 		.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export function getProjects(): Project[] {
-	return Object.entries(projectModules)
-		.map(([path, mod]) => ({
-			...(mod.metadata as unknown as Project),
-			slug: mod.metadata.slug as string ?? extractSlug(path)
-		}))
-		.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
-export function getPostBySlug(slug: string): { meta: BlogPost; component: typeof SvelteComponent } | undefined {
-	const entry = Object.entries(blogModules).find(
-		([path, mod]) => (mod.metadata.slug as string ?? extractSlug(path)) === slug
+function getItemBySlug<T>(
+	modules: Record<string, MdsvexModule>,
+	slug: string
+): { meta: T; component: Component } | undefined {
+	const entry = Object.entries(modules).find(
+		([path, mod]) => ((mod.metadata.slug as string) ?? extractSlug(path)) === slug
 	);
 	if (!entry) return undefined;
 	const [path, mod] = entry;
 	return {
-		meta: { ...(mod.metadata as unknown as BlogPost), slug: mod.metadata.slug as string ?? extractSlug(path) },
+		meta: {
+			...(mod.metadata as unknown as T),
+			slug: (mod.metadata.slug as string) ?? extractSlug(path)
+		},
 		component: mod.default
 	};
 }
 
-export function getProjectBySlug(slug: string): { meta: Project; component: typeof SvelteComponent } | undefined {
-	const entry = Object.entries(projectModules).find(
-		([path, mod]) => (mod.metadata.slug as string ?? extractSlug(path)) === slug
-	);
-	if (!entry) return undefined;
-	const [path, mod] = entry;
-	return {
-		meta: { ...(mod.metadata as unknown as Project), slug: mod.metadata.slug as string ?? extractSlug(path) },
-		component: mod.default
-	};
-}
+export const getBlogPosts = () => getItems<BlogPost>(blogModules);
+export const getProjects = () => getItems<Project>(projectModules);
+export const getPostBySlug = (slug: string) => getItemBySlug<BlogPost>(blogModules, slug);
+export const getProjectBySlug = (slug: string) => getItemBySlug<Project>(projectModules, slug);

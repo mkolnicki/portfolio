@@ -4,30 +4,17 @@
 	import ProjectCard from '$lib/components/ProjectCard.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
 	import { getDemoComponent } from '$lib/registry/demoRegistry';
-	import { browser } from '$app/environment';
 	import { reveal } from '$lib/actions/reveal';
 	import { spotlight } from '$lib/actions/spotlight';
+	import { inView } from '$lib/actions/inView';
 
 	let { data } = $props();
 
-	let featuredEl: HTMLAnchorElement | undefined = $state();
 	let featuredActive = $state(false);
-
-	$effect(() => {
-		if (!browser || !featuredEl) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				featuredActive = entry.isIntersecting;
-			},
-			{ threshold: 0.2 }
-		);
-		observer.observe(featuredEl);
-		return () => observer.disconnect();
-	});
 
 	let activeTag = $state<string | null>(null);
 
-	const allTags = $derived(() => {
+	const allTags = $derived.by(() => {
 		const tagSet = new Set<string>();
 		for (const p of data.projects) {
 			for (const t of p.tags) tagSet.add(t);
@@ -37,13 +24,13 @@
 
 	const featured = $derived(data.projects[0] ?? null);
 
-	const remaining = $derived(() => {
+	const remaining = $derived.by(() => {
 		const rest = data.projects.slice(1);
 		if (!activeTag) return rest;
 		return rest.filter((p) => p.tags.includes(activeTag!));
 	});
 
-	const featuredVisible = $derived(() => {
+	const featuredVisible = $derived.by(() => {
 		if (!activeTag) return true;
 		return featured?.tags.includes(activeTag!) ?? false;
 	});
@@ -54,20 +41,20 @@
 <ProjectsHero count={data.projects.length} />
 
 <div class="projects-page container">
-	{#if allTags().length > 1}
+	{#if allTags.length > 1}
 		<div class="projects-page__filters" use:reveal={{ delay: 100, distance: '12px' }}>
-			<TagFilter tags={allTags()} {activeTag} onchange={(tag) => (activeTag = tag)} />
+			<TagFilter tags={allTags} {activeTag} onchange={(tag) => (activeTag = tag)} />
 		</div>
 	{/if}
 
-	{#if featured && featuredVisible()}
+	{#if featured && featuredVisible}
 		{@const FeaturedDemo = getDemoComponent(featured.slug)}
 		<a
 			href="/projects/{featured.slug}"
 			class="featured"
 			use:spotlight
 			use:reveal={{ delay: 0, distance: '24px', duration: 600 }}
-			bind:this={featuredEl}
+			use:inView={{ onChange: (v) => featuredActive = v }}
 		>
 			{#if FeaturedDemo}
 				<div class="featured__demo" aria-hidden="true">
@@ -96,13 +83,13 @@
 		</a>
 	{/if}
 
-	{#if remaining().length}
+	{#if remaining.length}
 		<div class="grid">
-			{#each remaining() as project, i (project.slug)}
+			{#each remaining as project, i (project.slug)}
 				<ProjectCard {project} delay={i * 80} />
 			{/each}
 		</div>
-	{:else if !featured || !featuredVisible()}
+	{:else if !featured || !featuredVisible}
 		<p class="projects-page__empty">No projects match this filter.</p>
 	{/if}
 </div>
@@ -189,7 +176,7 @@
 	.featured__overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to top, rgba(13, 13, 18, 0.95) 0%, rgba(13, 13, 18, 0.3) 60%, transparent 100%);
+		background: linear-gradient(to top, color-mix(in srgb, var(--color-bg) 95%, transparent) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 60%, transparent 100%);
 		z-index: 1;
 	}
 
@@ -216,7 +203,7 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: var(--color-accent);
-		border: 1px solid rgba(201, 168, 76, 0.3);
+		border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
 		padding: 0.2rem 0.6rem;
 		border-radius: var(--radius-sm);
 	}

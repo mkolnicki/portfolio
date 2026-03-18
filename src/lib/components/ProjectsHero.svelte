@@ -55,6 +55,21 @@
 		initNodes();
 	});
 
+	let heroEl: HTMLElement | undefined = $state();
+	let isVisible = $state(true);
+
+	$effect(() => {
+		if (!browser || !heroEl) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				isVisible = entry.isIntersecting;
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(heroEl);
+		return () => observer.disconnect();
+	});
+
 	$effect(() => {
 		if (!browser || !nodes.length) return;
 
@@ -63,14 +78,16 @@
 		if (prefersReducedMotion) return;
 
 		function tick() {
-			frame++;
-			const t = frame * 0.008;
+			if (isVisible) {
+				frame++;
+				const t = frame * 0.008;
 
-			for (const n of nodes) {
-				const wave = Math.sin(t + n.baseX * 0.005 + n.baseY * 0.003) * 6;
-				const drift = Math.cos(t * 0.5 + n.phase) * 3;
-				n.x = n.baseX + drift;
-				n.y = n.baseY + wave;
+				for (const n of nodes) {
+					const wave = Math.sin(t + n.baseX * 0.005 + n.baseY * 0.003) * 6;
+					const drift = Math.cos(t * 0.5 + n.phase) * 3;
+					n.x = n.baseX + drift;
+					n.y = n.baseY + wave;
+				}
 			}
 
 			raf = requestAnimationFrame(tick);
@@ -106,7 +123,7 @@
 	});
 </script>
 
-<section class="projects-hero">
+<section class="projects-hero" bind:this={heroEl}>
 	<div class="projects-hero__bg" bind:this={container} role="presentation">
 		<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
 			{#each connections as line, i (i)}

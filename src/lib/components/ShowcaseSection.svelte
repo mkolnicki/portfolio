@@ -37,48 +37,37 @@
 		stacked = false
 	}: Props = $props();
 
-	function easeOutCubic(t: number): number {
-		return 1 - Math.pow(1 - t, 3);
-	}
+	// Carousel crossfade: each section stays fully visible for 70% of its scroll range,
+	// then a 30% crossfade transitions to the next section.
 
-	// Derive visibility and transforms from progress
-	const active = $derived(
-		stacked
-			? (index === 0 || prevProgress > 0.05) && progress < 0.95
-			: true
+	// Exit: fully visible until progress 0.7, then fades out over 0.7→1.0
+	const exitOpacity = $derived(stacked ? Math.max(0, Math.min(1, (1 - progress) / 0.3)) : 1);
+	// Enter: fades in as the previous section's progress goes 0.7→1.0
+	const enterOpacity = $derived(
+		stacked && index > 0 ? Math.max(0, Math.min(1, (prevProgress - 0.7) / 0.3)) : 1
 	);
-
-	const exitProgress = $derived(easeOutCubic(Math.max(0, Math.min(1, progress))));
-	const enterProgress = $derived(
-		index === 0 ? 1 : easeOutCubic(Math.max(0, Math.min(1, prevProgress)))
-	);
-
-	// Exit: fade out + scale down + drift up
-	const exitOpacity = $derived(1 - exitProgress);
-	const exitScale = $derived(1 - exitProgress * 0.05);
-	const exitTranslateY = $derived(-exitProgress * 30);
-
-	// Enter: fade in + scale up
-	const enterOpacity = $derived(enterProgress);
-	const enterScale = $derived(0.97 + enterProgress * 0.03);
-
-	// Combined
 	const opacity = $derived(Math.min(exitOpacity, enterOpacity));
-	const scale = $derived(exitScale * enterScale);
-	const translateY = $derived(exitTranslateY + (1 - enterProgress) * 20);
 
+	// Subtle vertical shift only during the transition window
+	const exitY = $derived(stacked ? -Math.max(0, (progress - 0.7) / 0.3) * 30 : 0);
+	const enterY = $derived(
+		stacked && index > 0
+			? Math.max(0, 1 - Math.max(0, (prevProgress - 0.7) / 0.3)) * 30
+			: 0
+	);
+	const translateY = $derived(exitY + enterY);
+
+	const active = $derived(stacked ? opacity > 0.1 : true);
 	const visible = $derived(stacked ? opacity > 0.01 : true);
-	const zIndex = $derived(sectionCount - index);
 </script>
 
 {#if stacked}
 	<div
 		class="showcase-card"
 		style:opacity={opacity}
-		style:transform="translateY({translateY}px) scale({scale})"
-		style:z-index={zIndex}
+		style:transform="translateY({translateY}px)"
 		style:visibility={visible ? 'visible' : 'hidden'}
-		style:pointer-events={visible ? 'auto' : 'none'}
+		style:pointer-events={active ? 'auto' : 'none'}
 	>
 		<div class="showcase container" {id}>
 			<div class="showcase__demo">
@@ -128,7 +117,7 @@
 		inset: 0;
 		display: flex;
 		align-items: center;
-		will-change: transform, opacity;
+		will-change: opacity, transform;
 	}
 
 	.mobile-section {

@@ -42,6 +42,21 @@
 		paths = buildPaths(0);
 	});
 
+	let heroEl: HTMLElement | undefined = $state();
+	let isVisible = $state(true);
+
+	$effect(() => {
+		if (!browser || !heroEl) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				isVisible = entry.isIntersecting;
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(heroEl);
+		return () => observer.disconnect();
+	});
+
 	$effect(() => {
 		if (!browser || !paths.length) return;
 
@@ -50,8 +65,10 @@
 		if (prefersReducedMotion) return;
 
 		function tick() {
-			frame++;
-			paths = buildPaths(frame * 0.012);
+			if (isVisible) {
+				frame++;
+				paths = buildPaths(frame * 0.012);
+			}
 			raf = requestAnimationFrame(tick);
 		}
 
@@ -60,7 +77,7 @@
 	});
 </script>
 
-<section class="blog-hero">
+<section class="blog-hero" bind:this={heroEl}>
 	<div class="blog-hero__bg" role="presentation">
 		<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
 			{#each paths as d, i (i)}

@@ -52,7 +52,6 @@
 		"@splinetool/runtime": "^1.12.69",
 		"express": "^5.2.1",
 		"gsap": "^3.14.2",
-		"open-props": "^1.7.23",
 		"serverless-http": "^4.0.0"
 	}
 }
