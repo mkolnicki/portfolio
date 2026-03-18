@@ -102,4 +102,15 @@
 		line-height: 1.1;
 		margin-top: 1rem;
 	}
+
+	@media (max-width: 768px) {
+		.philosophy {
+			padding: 4rem 0;
+			min-height: auto;
+		}
+
+		.philosophy__bg {
+			background-attachment: scroll;
+		}
+	}
 </style>

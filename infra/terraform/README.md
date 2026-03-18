@@ -35,9 +35,6 @@ Lambda loads runtime environment variables from one SSM SecureString parameter a
 
 ```json
 {
-  "SANITY_API_READ_TOKEN": "skt...",
-  "PUBLIC_SANITY_PROJECT_ID": "d1ta6zzb",
-  "PUBLIC_SANITY_DATASET": "production",
   "GITHUB_USERNAME": "mkolnicki",
   "GITHUB_TOKEN": ""
 }

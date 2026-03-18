@@ -96,6 +96,16 @@
 		background-color: var(--color-accent-hover);
 	}
 
+	@media (max-width: 639px) {
+		.hero__name-sans {
+			margin-bottom: 0;
+		}
+
+		.hero__name-serif {
+			font-size: clamp(2.5rem, 10vw, 3.5rem);
+		}
+	}
+
 	@media (min-width: 640px) {
 		.hero {
 			padding-bottom: 12rem;

@@ -1,0 +1,31 @@
+---
+title: "Pipeline Orchestrator"
+slug: "pipeline-orchestration"
+date: "2024-03-10"
+excerpt: "Visualizing data pipeline execution — DAG scheduling, fan-out parallelism, failure recovery, and throughput monitoring."
+featured: true
+readingMinutes: 5
+tags: ["Data Engineering", "Orchestration", "Backend"]
+---
+
+<script>
+	import PipelineDAGDemo from '$lib/components/demos/PipelineDAGDemo.svelte';
+</script>
+
+# Pipeline Orchestrator
+
+A real-time visualization of a data pipeline DAG — the kind of execution graph you'd see in Airflow, Dagster, or Prefect. Nodes progress through stages (ingest, validate, enrich, transform, join, load), with fan-out parallelism, dependency resolution, and automatic failure recovery.
+
+<div style="margin: 2rem 0;">
+	<PipelineDAGDemo />
+</div>
+
+## How it works
+
+The orchestrator resolves a dependency graph at each tick. A node transitions from **queued → running → done** only after all upstream dependencies complete. Data packets animate along cubic Bezier edges to visualize throughput between stages.
+
+Failures are injected randomly — a node turns red, pauses, then retries automatically. The sparkline in the footer tracks pipeline completion runs over time.
+
+## Architecture
+
+Built entirely with Svelte 5 runes and SVG. No external animation or charting libraries. The DAG layout is hand-positioned for clarity, with spatial relationships reflecting the actual data flow topology.

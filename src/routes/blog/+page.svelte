@@ -76,7 +76,7 @@
 	.grid {
 		display: grid;
 		gap: 2rem;
-		grid-template-columns: 1.15fr 1fr;
+		grid-template-columns: 1fr 1fr;
 		grid-auto-rows: 26rem;
 	}
 

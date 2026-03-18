@@ -1,0 +1,35 @@
+---
+title: "Raft Consensus"
+slug: "raft-consensus"
+date: "2024-02-15"
+excerpt: "An interactive visualization of the Raft distributed consensus protocol — leader election, heartbeats, and fault tolerance."
+featured: true
+readingMinutes: 5
+tags: ["Distributed Systems", "Backend", "Algorithms"]
+---
+
+<script>
+	import RaftConsensusDemo from '$lib/components/demos/RaftConsensusDemo.svelte';
+</script>
+
+# Raft Consensus
+
+A live simulation of the Raft consensus protocol running across a 5-node cluster. Watch leader election, heartbeat propagation, node failure, and automatic recovery in real time.
+
+<div style="margin: 2rem 0;">
+	<RaftConsensusDemo />
+</div>
+
+## The protocol
+
+Raft maintains consensus through three mechanisms:
+
+1. **Leader election** — when the leader crashes, followers detect the missing heartbeat. A random follower becomes a candidate, increments the term, and requests votes. A majority wins the election.
+
+2. **Heartbeats** — the leader continuously sends heartbeat pulses to all followers, who acknowledge them. This maintains authority and replicates the log.
+
+3. **Fault tolerance** — the cluster tolerates up to 2 node failures (maintaining quorum at 3/5). Dead nodes rejoin as followers and sync to the current term.
+
+## Implementation
+
+Pure Svelte 5 + SVG. Nodes are positioned on a ring with messages animating between them. The event log panel captures every state transition. Color coding makes the protocol state immediately readable — gold for leader, blue for followers, yellow during elections, red for failures.

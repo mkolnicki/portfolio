@@ -7,6 +7,8 @@ import VogueDigitalDemo from '$lib/components/demos/VogueDigitalDemo.svelte';
 import HelloWorldDemo from '$lib/components/demos/HelloWorldDemo.svelte';
 import NoiseProtocolDemo from '$lib/components/demos/NoiseProtocolDemo.svelte';
 import StateManagementEdgeDemo from '$lib/components/demos/StateManagementEdgeDemo.svelte';
+import PipelineDAGDemo from '$lib/components/demos/PipelineDAGDemo.svelte';
+import RaftConsensusDemo from '$lib/components/demos/RaftConsensusDemo.svelte';
 import type { Component } from 'svelte';
 
 const registry: Record<string, Component<{ active?: boolean }>> = {
@@ -18,7 +20,9 @@ const registry: Record<string, Component<{ active?: boolean }>> = {
 	'vogue-digital': VogueDigitalDemo,
 	'hello-world': HelloWorldDemo,
 	'noise-protocol': NoiseProtocolDemo,
-	'state-management-edge': StateManagementEdgeDemo
+	'state-management-edge': StateManagementEdgeDemo,
+	'pipeline-orchestration': PipelineDAGDemo,
+	'raft-consensus': RaftConsensusDemo
 };
 
 export function getDemoComponent(slug: string): Component<{ active?: boolean }> | undefined {

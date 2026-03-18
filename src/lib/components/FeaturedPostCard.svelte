@@ -12,6 +12,7 @@
 
 	const { post }: Props = $props();
 
+	// svelte-ignore state_referenced_locally
 	const Demo = getDemoComponent(post.slug);
 
 	let el: HTMLAnchorElement | undefined = $state();
@@ -143,8 +144,9 @@
 
 	.featured-post__meta {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.25rem 0.5rem;
 		font-size: var(--text-sm);
 		color: var(--color-text-muted);
 		margin-bottom: 0.75rem;

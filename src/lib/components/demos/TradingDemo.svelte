@@ -74,9 +74,10 @@
 		return result;
 	}
 
-	let candles = $state<Candle[]>(generateCandles());
-	let prevCandles = $state<Candle[]>([...candles]);
-	let displayCandles = $state<Candle[]>([...candles]);
+	const initialCandles = generateCandles();
+	let candles = $state<Candle[]>(initialCandles);
+	let prevCandles = $state<Candle[]>([...initialCandles]);
+	let displayCandles = $state<Candle[]>([...initialCandles]);
 	let transitionStart = $state(0);
 	let transitioning = $state(false);
 
@@ -552,8 +553,9 @@
 
 	.price-header {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 0.75rem;
+		gap: 0.35rem 0.75rem;
 		padding: 0.5rem 1rem;
 		border-bottom: 1px solid var(--color-border-subtle);
 	}
@@ -724,6 +726,16 @@
 
 		.spread-stat {
 			display: none;
+		}
+
+		.stats-bar {
+			gap: 0.5rem 0.75rem;
+			padding: 0.4rem 0.75rem;
+		}
+
+		.price-header {
+			gap: 0.25rem 0.5rem;
+			padding: 0.4rem 0.75rem;
 		}
 	}
 </style>

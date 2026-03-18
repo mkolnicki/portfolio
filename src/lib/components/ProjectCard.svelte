@@ -12,6 +12,7 @@
 
 	const { project, delay = 0 }: Props = $props();
 
+	// svelte-ignore state_referenced_locally
 	const Demo = getDemoComponent(project.slug);
 
 	let el: HTMLAnchorElement | undefined = $state();
@@ -195,4 +196,13 @@
 		color: var(--color-text-muted);
 	}
 
+	@media (max-width: 768px) {
+		.project-card__title {
+			font-size: var(--text-2xl);
+		}
+
+		.project-card__body {
+			padding: 1rem;
+		}
+	}
 </style>

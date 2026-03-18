@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { reveal } from '$lib/actions/reveal';
 	import type { Snippet } from 'svelte';
 
@@ -11,28 +10,97 @@
 		href: string;
 		linkLabel?: string;
 		demo: Snippet<[boolean]>;
+		/** 0–1 progress through this section's scroll range */
+		progress?: number;
+		/** 0–1 progress of the previous section (drives enter animation) */
+		prevProgress?: number;
+		/** Index in the stack (drives z-index) */
+		index?: number;
+		/** Total number of stacked sections */
+		sectionCount?: number;
+		/** Whether we're in stacked (desktop) mode */
+		stacked?: boolean;
 	}
 
-	const { id, title, excerpt, tags, href, linkLabel = 'View project', demo }: Props = $props();
+	const {
+		id,
+		title,
+		excerpt,
+		tags,
+		href,
+		linkLabel = 'View project',
+		demo,
+		progress = 0,
+		prevProgress = 0,
+		index = 0,
+		sectionCount = 1,
+		stacked = false
+	}: Props = $props();
 
-	let panel: HTMLDivElement | undefined = $state();
-	let active = $state(false);
+	function easeOutCubic(t: number): number {
+		return 1 - Math.pow(1 - t, 3);
+	}
 
-	$effect(() => {
-		if (!browser || !panel) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				active = entry.isIntersecting;
-			},
-			{ threshold: 0.3 }
-		);
-		observer.observe(panel);
-		return () => observer.disconnect();
-	});
+	// Derive visibility and transforms from progress
+	const active = $derived(
+		stacked
+			? (index === 0 || prevProgress > 0.05) && progress < 0.95
+			: true
+	);
+
+	const exitProgress = $derived(easeOutCubic(Math.max(0, Math.min(1, progress))));
+	const enterProgress = $derived(
+		index === 0 ? 1 : easeOutCubic(Math.max(0, Math.min(1, prevProgress)))
+	);
+
+	// Exit: fade out + scale down + drift up
+	const exitOpacity = $derived(1 - exitProgress);
+	const exitScale = $derived(1 - exitProgress * 0.05);
+	const exitTranslateY = $derived(-exitProgress * 30);
+
+	// Enter: fade in + scale up
+	const enterOpacity = $derived(enterProgress);
+	const enterScale = $derived(0.97 + enterProgress * 0.03);
+
+	// Combined
+	const opacity = $derived(Math.min(exitOpacity, enterOpacity));
+	const scale = $derived(exitScale * enterScale);
+	const translateY = $derived(exitTranslateY + (1 - enterProgress) * 20);
+
+	const visible = $derived(stacked ? opacity > 0.01 : true);
+	const zIndex = $derived(sectionCount - index);
 </script>
 
-<div class="sticky-wrapper" {id}>
-	<div class="sticky-panel" bind:this={panel}>
+{#if stacked}
+	<div
+		class="showcase-card"
+		style:opacity={opacity}
+		style:transform="translateY({translateY}px) scale({scale})"
+		style:z-index={zIndex}
+		style:visibility={visible ? 'visible' : 'hidden'}
+		style:pointer-events={visible ? 'auto' : 'none'}
+	>
+		<div class="showcase container" {id}>
+			<div class="showcase__demo">
+				{@render demo(active)}
+			</div>
+			<div class="showcase__meta" use:reveal>
+				<div class="showcase__tags">
+					{#each tags as tag (tag)}
+						<span class="tag">{tag}</span>
+					{/each}
+				</div>
+				<h3 class="showcase__title">{title}</h3>
+				<p class="showcase__excerpt">{excerpt}</p>
+				<a class="showcase__link" {href}>
+					{linkLabel}
+					<span aria-hidden="true">&rarr;</span>
+				</a>
+			</div>
+		</div>
+	</div>
+{:else}
+	<div class="mobile-section" {id}>
 		<div class="showcase container">
 			<div class="showcase__demo">
 				{@render demo(active)}
@@ -52,21 +120,20 @@
 			</div>
 		</div>
 	</div>
-</div>
+{/if}
 
 <style>
-	.sticky-wrapper {
-		height: 150vh;
-		position: relative;
-	}
-
-	.sticky-panel {
-		position: sticky;
-		top: 0;
-		height: 100vh;
+	.showcase-card {
+		position: absolute;
+		inset: 0;
 		display: flex;
 		align-items: center;
-		background: var(--color-bg);
+		will-change: transform, opacity;
+	}
+
+	.mobile-section {
+		position: relative;
+		padding: 3rem 0;
 	}
 
 	.showcase {
@@ -135,19 +202,13 @@
 	}
 
 	@media (max-width: 768px) {
-		.sticky-wrapper {
-			height: auto;
-		}
-
-		.sticky-panel {
-			position: relative;
-			height: auto;
-			padding: 3rem 0;
-		}
-
 		.showcase {
 			grid-template-columns: 1fr;
 			gap: 1.5rem;
+		}
+
+		.showcase__demo {
+			max-height: 50vh;
 		}
 	}
 </style>

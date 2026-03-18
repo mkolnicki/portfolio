@@ -13,6 +13,7 @@
 
 	const { post, delay = 0 }: Props = $props();
 
+	// svelte-ignore state_referenced_locally
 	const Demo = getDemoComponent(post.slug);
 
 	let el: HTMLAnchorElement | undefined = $state();
@@ -205,5 +206,19 @@
 		border: 1px solid var(--color-border-subtle);
 		border-radius: 100px;
 		color: var(--color-text-muted);
+	}
+
+	@media (max-width: 768px) {
+		.blog-card__title {
+			white-space: normal;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			line-clamp: 2;
+			-webkit-box-orient: vertical;
+		}
+
+		.blog-card__body {
+			padding: 1rem;
+		}
 	}
 </style>

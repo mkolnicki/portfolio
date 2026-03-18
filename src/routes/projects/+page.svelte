@@ -265,4 +265,19 @@
 		text-align: center;
 		padding: 4rem 0;
 	}
+
+	@media (max-width: 768px) {
+		.featured__body {
+			padding: 1.5rem;
+			min-height: 20rem;
+		}
+
+		.featured__title {
+			font-size: var(--text-3xl);
+		}
+
+		.featured {
+			min-height: 20rem;
+		}
+	}
 </style>

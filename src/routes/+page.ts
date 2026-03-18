@@ -1,6 +1,6 @@
 import { getBlogPosts, getProjects } from '$lib/utils/content';
 
-const FEATURED_PROJECT_SLUGS = ['aether-interface', 'nura-health'];
+const FEATURED_PROJECT_SLUGS = ['aether-interface', 'pipeline-orchestration', 'raft-consensus'];
 const FEATURED_POST_SLUGS = ['interactive-particle-networks', 'inheritance-as-abstraction'];
 
 export function load() {

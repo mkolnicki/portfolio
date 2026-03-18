@@ -93,4 +93,14 @@
 	.cta__button:hover .cta__arrow {
 		transform: translateX(4px);
 	}
+
+	@media (max-width: 768px) {
+		.cta__inner {
+			padding: 2.5rem 1.25rem;
+		}
+
+		.cta__title {
+			font-size: var(--text-3xl);
+		}
+	}
 </style>

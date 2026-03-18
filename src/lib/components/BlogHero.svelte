@@ -150,8 +150,9 @@
 		color: var(--color-text-muted);
 		line-height: 1.5;
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.5rem 1rem;
 	}
 
 	.blog-hero__count {
@@ -168,6 +169,7 @@
 	@media (max-width: 768px) {
 		.blog-hero {
 			min-height: 30vh;
+			padding-top: 6rem;
 			padding-bottom: 3rem;
 		}
 	}

@@ -23,10 +23,12 @@
 	let frame = 0;
 	let animating = $state(true);
 
+	// svelte-ignore state_referenced_locally
 	let particleCount = $state(initialParticleCount);
 	let connectionDist = $state(150);
 	let attractionStrength = $state(0.08);
 	let speedMultiplier = $state(1);
+	// svelte-ignore state_referenced_locally
 	let mode: InteractionMode = $state(initialMode);
 	let controlsOpen = $state(false);
 
@@ -47,13 +49,14 @@
 		phase: number;
 	}
 
-	let particles = $state<Particle[]>([]);
+	// Use $state.raw to avoid proxy overhead during physics simulation
+	let particles = $state.raw<Particle[]>([]);
 	let width = $state(600);
 	let height = $state(400);
 	let nextId = 0;
 
-	// Connection lines computed in rAF tick
-	let connections = $state<{ x1: number; y1: number; x2: number; y2: number; opacity: number }[]>(
+	// Connection lines computed in rAF tick — raw to avoid proxy overhead
+	let connections = $state.raw<{ x1: number; y1: number; x2: number; y2: number; opacity: number }[]>(
 		[]
 	);
 
@@ -107,7 +110,11 @@
 	function computeConnections(pts: Particle[], dist: number, mx: number, my: number) {
 		const lines: { x1: number; y1: number; x2: number; y2: number; opacity: number }[] = [];
 		const grid = buildSpatialHash(pts, dist);
-		const checked = new Set<string>();
+		const distSq = dist * dist;
+		const cursorRadiusSq = 250 * 250;
+		// Bitmap for deduplication — avoids string allocation + Set overhead
+		const n = pts.length;
+		const seen = new Uint8Array(n * n);
 
 		for (const p of pts) {
 			const cx = Math.floor(p.x / dist);
@@ -121,25 +128,33 @@
 
 					for (const q of cell) {
 						if (q.id <= p.id) continue;
-						const pairKey = `${p.id},${q.id}`;
-						if (checked.has(pairKey)) continue;
-						checked.add(pairKey);
+						const idx = p.id * n + q.id;
+						if (seen[idx]) continue;
+						seen[idx] = 1;
 
 						const ddx = p.x - q.x;
 						const ddy = p.y - q.y;
-						const d = Math.sqrt(ddx * ddx + ddy * ddy);
-						if (d < dist) {
-							// Brighter near cursor
-							const midX = (p.x + q.x) / 2;
-							const midY = (p.y + q.y) / 2;
-							const cursorDist = Math.sqrt((midX - mx) ** 2 + (midY - my) ** 2);
-							const cursorBoost = Math.max(0, 1 - cursorDist / 250) * 0.4;
+						const dSq = ddx * ddx + ddy * ddy;
+						if (dSq < distSq) {
+							const d = Math.sqrt(dSq);
+							const rawOpacity = 1 - d / dist;
+							// Skip nearly invisible connections
+							if (rawOpacity < 0.05) continue;
+							// Brighter near cursor — use squared distance
+							const midX = (p.x + q.x) * 0.5;
+							const midY = (p.y + q.y) * 0.5;
+							const cdx = midX - mx;
+							const cdy = midY - my;
+							const cursorDistSq = cdx * cdx + cdy * cdy;
+							const cursorBoost = cursorDistSq < cursorRadiusSq
+								? (1 - Math.sqrt(cursorDistSq) / 250) * 0.4
+								: 0;
 							lines.push({
 								x1: p.x,
 								y1: p.y,
 								x2: q.x,
 								y2: q.y,
-								opacity: (1 - d / dist) * (0.4 + cursorBoost)
+								opacity: rawOpacity * (0.4 + cursorBoost)
 							});
 						}
 					}
@@ -160,17 +175,22 @@
 			const mx = (virtualCursorActive ? virtualX : mouseX) * width;
 			const my = (virtualCursorActive ? virtualY : mouseY) * height;
 			const DAMPING = 0.96;
+			const influenceRadiusSq = 200 * 200;
 
-			for (const p of particles) {
+			const pts = particles;
+			for (let i = 0; i < pts.length; i++) {
+				const p = pts[i];
 				// Sinusoidal drift force
 				const driftFx = Math.cos(t + p.phase) * 0.3 * speedMultiplier;
 				const driftFy = -Math.sin(t * 0.7 + p.phase) * 0.3 * speedMultiplier;
 
-				// Mouse interaction force
+				// Mouse interaction force — use squared distance to avoid sqrt
 				const dx = mx - p.x;
 				const dy = my - p.y;
-				const dist = Math.sqrt(dx * dx + dy * dy);
-				const influence = Math.max(0, 1 - dist / 200);
+				const distSq = dx * dx + dy * dy;
+				const influence = distSq < influenceRadiusSq
+					? Math.max(0, 1 - Math.sqrt(distSq) / 200)
+					: 0;
 				const dir = mode === 'repel' ? -1 : 1;
 				const mouseFx = dx * influence * attractionStrength * dir;
 				const mouseFy = dy * influence * attractionStrength * dir;
@@ -193,7 +213,9 @@
 			}
 
 			// Compute connections with spatial hash
-			connections = computeConnections(particles, connectionDist, mx, my);
+			connections = computeConnections(pts, connectionDist, mx, my);
+			// New array reference triggers Svelte re-render for $state.raw
+			particles = pts.slice();
 
 			raf = requestAnimationFrame(tick);
 		}
@@ -227,7 +249,7 @@
 		if (particles.length >= 250) return;
 		const cx = ((e.clientX - rect.left) / rect.width) * width;
 		const cy = ((e.clientY - rect.top) / rect.height) * height;
-		particles.push({
+		particles = [...particles, {
 			id: nextId++,
 			baseX: cx,
 			baseY: cy,
@@ -237,7 +259,7 @@
 			vy: (Math.random() - 0.5) * 6,
 			size: 2 + Math.random() * 2,
 			phase: Math.random() * Math.PI * 2
-		});
+		}];
 	}
 
 	// Touch support
@@ -303,6 +325,7 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
 <div
 	class="particle-wrap"
 	bind:this={wrapper}
@@ -314,19 +337,10 @@
 	ontouchend={handleTouchEnd}
 	onkeydown={handleKeyDown}
 	tabindex="0"
-	role="img"
+	role="application"
 	aria-label="Interactive particle network animation. Use arrow keys to move cursor, Space to pause, M to change mode."
 >
 	<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
-		<defs>
-			<filter id="glow">
-				<feGaussianBlur stdDeviation="3" result="blur" />
-				<feMerge>
-					<feMergeNode in="blur" />
-					<feMergeNode in="SourceGraphic" />
-				</feMerge>
-			</filter>
-		</defs>
 		{#each connections as line, i (i)}
 			<line
 				x1={line.x1}
@@ -338,14 +352,13 @@
 				opacity={line.opacity}
 			/>
 		{/each}
-		{#each particles as p, i (p.id)}
+		{#each particles as p, i}
 			<circle
 				cx={p.x}
 				cy={p.y}
 				r={particleDisplaySize(p)}
 				fill="var(--color-accent)"
 				opacity={i % 3 === 0 ? 0.5 : 0.7}
-				filter={i % 3 === 0 ? 'url(#glow)' : undefined}
 			/>
 		{/each}
 	</svg>
@@ -362,10 +375,10 @@
 
 		<div class="controls-panel" class:open={controlsOpen}>
 			<div class="control-group">
-				<label class="control-label">
-					Mode
-					<span class="control-value">{mode}</span>
-				</label>
+			<span class="control-label">
+				Mode
+				<span class="control-value">{mode}</span>
+			</span>
 				<div class="mode-buttons">
 					<button
 						class="mode-btn"
@@ -396,7 +409,7 @@
 					Particles
 					<span class="control-value">{particleCount}</span>
 				</span>
-				<input type="range" min="24" max="200" step="1" bind:value={particleCount} />
+				<input type="range" min="24" max="100" step="1" bind:value={particleCount} />
 			</label>
 
 			<label class="control-group">
@@ -404,7 +417,7 @@
 					Connect Distance
 					<span class="control-value">{connectionDist}</span>
 				</span>
-				<input type="range" min="50" max="300" step="10" bind:value={connectionDist} />
+				<input type="range" min="50" max="100" step="10" bind:value={connectionDist} />
 			</label>
 
 			<label class="control-group">

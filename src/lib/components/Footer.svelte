@@ -166,4 +166,12 @@
 			opacity: .3;
 		}
 	}
+
+	@media (max-width: 768px) {
+		.footer {
+			border-top-left-radius: 2rem;
+			border-top-right-radius: 2rem;
+			padding-top: 3rem;
+		}
+	}
 </style>
