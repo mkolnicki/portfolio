@@ -9,6 +9,12 @@ import NoiseProtocolDemo from '$lib/components/demos/NoiseProtocolDemo.svelte';
 import StateManagementEdgeDemo from '$lib/components/demos/StateManagementEdgeDemo.svelte';
 import PipelineDAGDemo from '$lib/components/demos/PipelineDAGDemo.svelte';
 import RaftConsensusDemo from '$lib/components/demos/RaftConsensusDemo.svelte';
+import ConfidentialityDemo from '$lib/components/demos/ConfidentialityDemo.svelte';
+import HashAvalancheDemo from '$lib/components/demos/HashAvalancheDemo.svelte';
+import CertChainDemo from '$lib/components/demos/CertChainDemo.svelte';
+import RSAKeyDemo from '$lib/components/demos/RSAKeyDemo.svelte';
+import AESStateDemo from '$lib/components/demos/AESStateDemo.svelte';
+import DHColorDemo from '$lib/components/demos/DHColorDemo.svelte';
 import type { Component } from 'svelte';
 
 const registry: Record<string, Component<{ active?: boolean }>> = {
@@ -22,7 +28,13 @@ const registry: Record<string, Component<{ active?: boolean }>> = {
 	'noise-protocol': NoiseProtocolDemo,
 	'state-management-edge': StateManagementEdgeDemo,
 	'pipeline-orchestration': PipelineDAGDemo,
-	'raft-consensus': RaftConsensusDemo
+	'raft-consensus': RaftConsensusDemo,
+	'cryptography-fundamentals': ConfidentialityDemo,
+	'hashing': HashAvalancheDemo,
+	'pki': CertChainDemo,
+	'rsa': RSAKeyDemo,
+	'symmetric-encryption': AESStateDemo,
+	'diffie-hellman': DHColorDemo
 };
 
 export function getDemoComponent(slug: string): Component<{ active?: boolean }> | undefined {

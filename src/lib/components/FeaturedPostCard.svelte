@@ -61,6 +61,9 @@
 		min-height: 22rem;
 		border-radius: var(--radius-2xl);
 		overflow: hidden;
+		isolation: isolate;
+		-webkit-mask-image: -webkit-radial-gradient(white, black);
+		mask-image: radial-gradient(white, black);
 		transition:
 			transform 250ms var(--ease-spring),
 			box-shadow var(--transition-base);
@@ -96,6 +99,7 @@
 		inset: 0;
 		pointer-events: none;
 		overflow: hidden;
+		border-radius: inherit;
 	}
 
 	.featured-post__image {
@@ -115,7 +119,10 @@
 	.featured-post__overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to top, color-mix(in srgb, var(--color-bg) 95%, transparent) 0%, color-mix(in srgb, var(--color-bg) 40%, transparent) 50%, color-mix(in srgb, var(--color-bg) 15%, transparent) 100%);
+		border-radius: inherit;
+		background:
+			linear-gradient(to right, color-mix(in srgb, var(--color-bg) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg) 70%, transparent) 40%, color-mix(in srgb, var(--color-bg) 20%, transparent) 100%),
+			linear-gradient(to top, color-mix(in srgb, var(--color-bg) 85%, transparent) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 60%, transparent 100%);
 		z-index: 1;
 	}
 

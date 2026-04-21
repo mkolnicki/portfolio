@@ -15,9 +15,9 @@ tags: ["cryptography", "security"]
 
 Encryption hides a message. Hashing detects tampering. Key exchange establishes a shared secret. But none of these answer a question we've been quietly setting aside: how do you know the public key you just received actually belongs to who you think it does?
 
-This matters more than it might seem. Suppose you look up your bank's public key and encrypt your credentials. The encryption is perfect. But if you encrypted to the wrong key — one belonging to an attacker who impersonated your bank — the cryptography did its job and still betrayed you. The math is sound. The trust was misplaced.
+This matters more than it might seem. Suppose you look up your bank's public key and encrypt your credentials. The encryption is perfect. But if you encrypted to the wrong key, one belonging to an attacker who impersonated your bank, the cryptography did its job and still betrayed you. The math is sound. The trust was misplaced.
 
-Solving this requires something beyond encryption or hashing. It requires a system for **vouching** — a way to tie a public key to an identity in a manner others can verify. That system is called a **digital signature**, and the infrastructure built on top of it is called the **public key infrastructure**, or **PKI**.
+Solving this requires something beyond encryption or hashing. It requires a system for **vouching**, a way to tie a public key to an identity in a manner others can verify. That system is called a **digital signature**, and the infrastructure built on top of it is called the **public key infrastructure**, or **PKI**.
 
 ---
 
@@ -25,15 +25,15 @@ Solving this requires something beyond encryption or hashing. It requires a syst
 
 Recall that RSA has a curious symmetry. We described encryption as applying the public key and decryption as applying the private key. But the mathematics works in both directions: you can apply the private key first and the public key second, and the operations still invert each other.
 
-This reversal is the basis of a **digital signature**. Instead of encrypting a message to keep it secret, the sender applies their *private key* to a hash of the message. Anyone who has the corresponding public key can verify the result. If verification succeeds, two things are established: first, the signer held the private key — since only that key could have produced a signature that the public key accepts; second, the message hasn't been altered — since the signature is over a hash of the specific content.
+This reversal is the basis of a **digital signature**. Instead of encrypting a message to keep it secret, the sender applies their *private key* to a hash of the message. Anyone who has the corresponding public key can verify the result. If verification succeeds, two things are established: first, the signer held the private key, since only that key could have produced a signature that the public key accepts; second, the message hasn't been altered, since the signature is over a hash of the specific content.
 
 In practice, the signing operation looks like this: hash the message with SHA-256, sign the hash with the private key. The recipient hashes the received message independently, verifies the signature against the sender's public key, and compares. A match means the message is authentic and unmodified.
 
-Notice that this solves a problem encryption can't: **non-repudiation**. Once you've signed a message with your private key — which only you hold — you can't plausibly deny having sent it. The signature is evidence in a way that a sealed envelope is not.
+Notice that this solves a problem encryption can't: **non-repudiation**. Once you've signed a message with your private key, which only you hold, you can't plausibly deny having sent it. The signature is evidence in a way that a sealed envelope is not.
 
 <SignatureDemo />
 
-Click TAMPER to change the received message. Even one character shifts the hash completely — the recomputed hash no longer matches the one the signature was made over, and verification fails.
+Click TAMPER to change the received message. Even one character shifts the hash completely, the recomputed hash no longer matches the one the signature was made over, and verification fails.
 
 ---
 
@@ -43,7 +43,7 @@ Digital signatures verify that a message came from whoever holds a particular pr
 
 You need someone to sign the bank's public key. A trusted third party who says: "I have verified that this key belongs to this organization. Here is my signature to prove it." That signed statement is called a **certificate**. And the trusted party who issues it is called a **Certificate Authority**, or **CA**.
 
-A **digital certificate** bundles together a public key, information about its owner — organization name, domain name, validity period — and a signature from the issuing CA. When your browser connects to a bank, the bank presents its certificate. Your browser checks the CA's signature. If it validates, your browser concludes: the CA vouches that this public key belongs to this domain. If the CA is trustworthy, you can trust the key.
+A **digital certificate** bundles together a public key, information about its owner, organization name, domain name, validity period, and a signature from the issuing CA. When your browser connects to a bank, the bank presents its certificate. Your browser checks the CA's signature. If it validates, your browser concludes: the CA vouches that this public key belongs to this domain. If the CA is trustworthy, you can trust the key.
 
 ---
 
@@ -53,15 +53,15 @@ Here's the problem: how do you trust the CA?
 
 The CA is itself identified by a public key. That key could also be impersonated. You need someone to vouch for the CA.
 
-This is where the **chain of trust** comes in. Certificates can vouch for other certificates. A **root CA** is a CA whose certificate is self-signed — it vouches for itself — and whose public key is distributed out-of-band: baked into operating systems, browsers, and devices at manufacture or installation. Your laptop ships with a store of maybe a hundred root CA certificates, pre-approved by Microsoft or Apple or Mozilla through their own vetting processes. You extend trust to those roots implicitly, by using the software.
+This is where the **chain of trust** comes in. Certificates can vouch for other certificates. A **root CA** is a CA whose certificate is self-signed, it vouches for itself, and whose public key is distributed out-of-band: baked into operating systems, browsers, and devices at manufacture or installation. Your laptop ships with a store of maybe a hundred root CA certificates, pre-approved by Microsoft or Apple or Mozilla through their own vetting processes. You extend trust to those roots implicitly, by using the software.
 
-Beneath the roots sit **intermediate CAs** — authorities whose certificates are signed by a root, and who in turn sign certificates for end entities like websites. This indirection exists for security: root CA private keys are kept offline, in hardware security modules, in physically secured facilities. Compromising an intermediate is damaging but recoverable; compromising a root would undermine trust in every certificate the root ever signed.
+Beneath the roots sit **intermediate CAs**, authorities whose certificates are signed by a root, and who in turn sign certificates for end entities like websites. This indirection exists for security: root CA private keys are kept offline, in hardware security modules, in physically secured facilities. Compromising an intermediate is damaging but recoverable; compromising a root would undermine trust in every certificate the root ever signed.
 
 When you connect to your bank, the server presents a **certificate chain**: its own certificate, signed by an intermediate CA, whose certificate is signed by a root. Your browser walks the chain, verifying each signature, until it reaches a root it already trusts. If every signature checks out and the chain terminates at a trusted root, the connection proceeds.
 
 <CertChainDemo />
 
-Click a certificate to inspect its fields, then hit VERIFY CHAIN to watch the browser walk each link — from the leaf back to the pre-trusted root.
+Click a certificate to inspect its fields, then hit VERIFY CHAIN to watch the browser walk each link, from the leaf back to the pre-trusted root.
 
 ---
 
@@ -69,19 +69,19 @@ Click a certificate to inspect its fields, then hit VERIFY CHAIN to watch the br
 
 The certificate format used in virtually all of this infrastructure is **X.509**, a standard that dates to 1988 and has been revised several times since. An X.509 certificate is a structured data object containing fields that have become second nature to anyone who's clicked the padlock icon in a browser:
 
-The **subject** identifies who the certificate belongs to — a domain name, an organization, sometimes a specific person. The **issuer** identifies the CA that signed it. The **validity period** gives a start and expiration date, after which the certificate must be replaced. The **subject public key info** contains the actual public key. And the **signature** field at the end contains the CA's signature over the rest of the contents.
+The **subject** identifies who the certificate belongs to, a domain name, an organization, sometimes a specific person. The **issuer** identifies the CA that signed it. The **validity period** gives a start and expiration date, after which the certificate must be replaced. The **subject public key info** contains the actual public key. And the **signature** field at the end contains the CA's signature over the rest of the contents.
 
-Extensions added over the years carry additional information — what the certificate can be used for, whether the subject is itself a CA, what alternative domain names are covered. The **Subject Alternative Name** extension is particularly important: it lists all the domain names and IP addresses the certificate is valid for, which is how a single certificate can cover both `example.com` and `www.example.com`.
+Extensions added over the years carry additional information, what the certificate can be used for, whether the subject is itself a CA, what alternative domain names are covered. The **Subject Alternative Name** extension is particularly important: it lists all the domain names and IP addresses the certificate is valid for, which is how a single certificate can cover both `example.com` and `www.example.com`.
 
 ---
 
 ## When the chain breaks
 
-The whole system depends on the integrity of CAs — and that integrity has been violated, more than once.
+The whole system depends on the integrity of CAs, and that integrity has been violated, more than once.
 
-In 2011, a Dutch CA called DigiNotar was compromised. Attackers issued fraudulent certificates for hundreds of domains, including Google's — meaning anyone presenting those certificates could intercept encrypted traffic intended for Google. DigiNotar was subsequently removed from trust stores by every major browser and operating system. Without that trust, DigiNotar was worthless as a CA. The company went bankrupt within a month. Being removed from root stores is a death sentence.
+In 2011, a Dutch CA called DigiNotar was compromised. Attackers issued fraudulent certificates for hundreds of domains, including Google's, meaning anyone presenting those certificates could intercept encrypted traffic intended for Google. DigiNotar was subsequently removed from trust stores by every major browser and operating system. Without that trust, DigiNotar was worthless as a CA. The company went bankrupt within a month. Being removed from root stores is a death sentence.
 
-This incident, and others like it, drove development of **Certificate Transparency** — a system in which all issued certificates are logged to publicly auditable append-only logs. A certificate that isn't in the log can be rejected by browsers. This means rogue certificates issued by compromised CAs are detectable, because they'll either appear in the log (and can be spotted) or won't (and browsers can refuse them). It's a monitoring layer on top of a trust system that can't otherwise be fully verified.
+This incident, and others like it, drove development of **Certificate Transparency**, a system in which all issued certificates are logged to publicly auditable append-only logs. A certificate that isn't in the log can be rejected by browsers. This means rogue certificates issued by compromised CAs are detectable, because they'll either appear in the log (and can be spotted) or won't (and browsers can refuse them). It's a monitoring layer on top of a trust system that can't otherwise be fully verified.
 
 ---
 
@@ -91,6 +91,6 @@ Step back and look at what the combination of these tools achieves. A public key
 
 Establish a shared secret through Diffie-Hellman, authenticate each other's identities through signed certificates, verify those certificates against a chain terminating in pre-trusted roots, and then use the shared secret to encrypt and integrity-check everything that follows.
 
-This is the TLS handshake. It runs every time you load an HTTPS page, typically completing in under a hundred milliseconds. It's not magic — each piece is something we've now traced to its foundations — but it is an extraordinary piece of engineering, a system in which trust, once carefully established, can be safely extended to strangers at internet scale.
+This is the TLS handshake. It runs every time you load an HTTPS page, typically completing in under a hundred milliseconds. It's not magic, each piece is something we've now traced to its foundations, but it is an extraordinary piece of engineering, a system in which trust, once carefully established, can be safely extended to strangers at internet scale.
 
-The general would have found it remarkable. The orders are sealed, the courier is authenticated, and the seal was issued by a notary whose credentials trace back to an authority both parties already recognize — without ever having met, over a road the enemy watches openly.
+The general would have found it remarkable. The orders are sealed, the courier is authenticated, and the seal was issued by a notary whose credentials trace back to an authority both parties already recognize, without ever having met, over a road the enemy watches openly.

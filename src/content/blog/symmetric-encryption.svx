@@ -2,7 +2,7 @@
 title: "The Same Key Locks and Unlocks"
 slug: "symmetric-encryption"
 date: "2026-03-21"
-excerpt: "How symmetric encryption works — from a single flipped bit to the algorithm securing your laptop right now."
+excerpt: "How symmetric encryption works, from a single flipped bit to the algorithm securing your laptop right now."
 featured: true
 readingMinutes: 8
 tags: ["cryptography", "security"]
@@ -14,7 +14,7 @@ tags: ["cryptography", "security"]
 	import AESStateDemo from '$lib/components/demos/AESStateDemo.svelte';
 </script>
 
-Imagine you're a general. You need to send orders to a commander in the field, but the courier might be captured — and the enemy will read everything they carry. You want your message to arrive safely, but you can't stop it from being intercepted. What you can do is make it unreadable to anyone who isn't supposed to read it.
+Imagine you're a general. You need to send orders to a commander in the field, but the courier might be captured, and the enemy will read everything they carry. You want your message to arrive safely, but you can't stop it from being intercepted. What you can do is make it unreadable to anyone who isn't supposed to read it.
 
 This is the oldest problem in cryptography, and the oldest solution is surprisingly simple: scramble the message before you send it, and share a secret with your recipient that lets them unscramble it on the other end. Both parties use the same secret. That shared secret is what we call a **key**, and any system that uses the same key to encrypt and decrypt is called **symmetric encryption**.
 
@@ -26,7 +26,7 @@ The question is: what does "scrambling" actually mean, mathematically?
 
 Before we can talk about encrypting a message, we need a way to combine a message with a key and produce something unreadable. The operation we want has a very specific property: it must be *reversible*. Whatever we do to encrypt, we need to be able to undo with the same key.
 
-There's a binary operation that satisfies this perfectly — one you probably encountered in a programming class and promptly forgot. It's called **XOR**, written ⊕, and it works on individual bits. The rule is almost childishly simple: XOR outputs 1 if its two inputs are different, and 0 if they're the same.
+There's a binary operation that satisfies this perfectly, one you probably encountered in a programming class and promptly forgot. It's called **XOR**, written ⊕, and it works on individual bits. The rule is almost childishly simple: XOR outputs 1 if its two inputs are different, and 0 if they're the same.
 
 | A | B | A ⊕ B |
 |---|---|--------|
@@ -39,9 +39,9 @@ What makes XOR special for encryption is this: if you XOR a value with a key, an
 
 <XORDemo />
 
-Click any MESSAGE bit above to flip it. No matter what you choose, DECRYPTED always equals MESSAGE — because XORing with the same key twice is a perfect round-trip. This is the atomic unit of nearly all symmetric encryption.
+Click any MESSAGE bit above to flip it. No matter what you choose, DECRYPTED always equals MESSAGE, because XORing with the same key twice is a perfect round-trip. This is the atomic unit of nearly all symmetric encryption.
 
-Let's run the general's message through this. Suppose the message bit is `1` — attack — and the key bit is `1`. Encrypt: `1 ⊕ 1 = 0`. An interceptor sees `0` and learns nothing, because both "attack" (`1`) and "retreat" (`0`) could have produced `0` depending on the key. The commander receives `0`, applies the same key: `0 ⊕ 1 = 1`. Orders restored.
+Let's run the general's message through this. Suppose the message bit is `1`, attack, and the key bit is `1`. Encrypt: `1 ⊕ 1 = 0`. An interceptor sees `0` and learns nothing, because both "attack" (`1`) and "retreat" (`0`) could have produced `0` depending on the key. The commander receives `0`, applies the same key: `0 ⊕ 1 = 1`. Orders restored.
 
 Everything else is a question of how to scale this up.
 
@@ -49,9 +49,9 @@ Everything else is a question of how to scale this up.
 
 ## A key as long as the message
 
-The most direct application of XOR encryption is to generate a key that's exactly as long as the message and XOR them together bit by bit. If that key is truly random, never reused, and kept secret, this scheme is called a **one-time pad** — and it's provably unbreakable. An interceptor who captures the ciphertext gains zero information about the plaintext, because for any possible plaintext, there exists a key that would have produced that ciphertext.
+The most direct application of XOR encryption is to generate a key that's exactly as long as the message and XOR them together bit by bit. If that key is truly random, never reused, and kept secret, this scheme is called a **one-time pad**, and it's provably unbreakable. An interceptor who captures the ciphertext gains zero information about the plaintext, because for any possible plaintext, there exists a key that would have produced that ciphertext.
 
-The catch is brutal in practice: the key must be as long as the message, truly random, and used exactly once. To securely transmit a one-megabyte file, you need a one-megabyte key — and you need to share that key securely in the first place. If you had a secure channel to share the key, you could have just sent the message through it. For our general, this means physically couriering a key book to every commander before the war starts. It works, but it doesn't scale.
+The catch is brutal in practice: the key must be as long as the message, truly random, and used exactly once. To securely transmit a one-megabyte file, you need a one-megabyte key, and you need to share that key securely in the first place. If you had a secure channel to share the key, you could have just sent the message through it. For our general, this means physically couriering a key book to every commander before the war starts. It works, but it doesn't scale.
 
 What if we could generate an arbitrarily long key from a short secret?
 
@@ -59,13 +59,13 @@ What if we could generate an arbitrarily long key from a short secret?
 
 ## Generating a keystream
 
-This is exactly what a **stream cipher** does. Start with a short secret key — something a person could memorize, or a server could store — and feed it into a deterministic algorithm that produces an endless sequence of pseudorandom bits. That sequence is called the **keystream**. XOR it with your message, bit by bit, and you have encryption.
+This is exactly what a **stream cipher** does. Start with a short secret key, something a person could memorize, or a server could store, and feed it into a deterministic algorithm that produces an endless sequence of pseudorandom bits. That sequence is called the **keystream**. XOR it with your message, bit by bit, and you have encryption.
 
-The crucial word is *pseudorandom*. A true random sequence has no pattern; a pseudorandom sequence has patterns, but ones so complex and hidden that an adversary can't distinguish the output from randomness without knowing the key. The algorithm is public — everyone knows how the keystream is generated in principle — but without the key, you can't reproduce it.
+The crucial word is *pseudorandom*. A true random sequence has no pattern; a pseudorandom sequence has patterns, but ones so complex and hidden that an adversary can't distinguish the output from randomness without knowing the key. The algorithm is public, everyone knows how the keystream is generated in principle, but without the key, you can't reproduce it.
 
 Our general and commander share only a short key. To encrypt, the general runs the key through the algorithm and XORs the resulting keystream against the orders. To decrypt, the commander runs the same key through the same algorithm, gets the same keystream, and XORs again. The message surfaces.
 
-Stream ciphers are fast and elegant, and they're still in wide use today — ChaCha20 encrypts most HTTPS connections on mobile devices. But they carry a danger the one-time pad made explicit: **never reuse the keystream**. If you encrypt two different messages with the same key and stream position, an attacker who intercepts both ciphertexts can XOR them together. The key cancels out entirely, leaving the XOR of the two plaintexts — and from that, recovering the messages is often straightforward.
+Stream ciphers are fast and elegant, and they're still in wide use today, ChaCha20 encrypts most HTTPS connections on mobile devices. But they carry a danger the one-time pad made explicit: **never reuse the keystream**. If you encrypt two different messages with the same key and stream position, an attacker who intercepts both ciphertexts can XOR them together. The key cancels out entirely, leaving the XOR of the two plaintexts, and from that, recovering the messages is often straightforward.
 
 <StreamCipherDemo />
 
@@ -75,7 +75,7 @@ The rule is simple and absolute: same key means a fresh stream from the beginnin
 
 ## Thinking in blocks
 
-Stream ciphers process data one bit (or byte) at a time, like water through a pipe. A different philosophy is to chop the message into fixed-size chunks and encrypt each chunk as a unit. Schemes that do this are called **block ciphers**, and the most important one in use today is **AES** — the **Advanced Encryption Standard**.
+Stream ciphers process data one bit (or byte) at a time, like water through a pipe. A different philosophy is to chop the message into fixed-size chunks and encrypt each chunk as a unit. Schemes that do this are called **block ciphers**, and the most important one in use today is **AES**, the **Advanced Encryption Standard**.
 
 AES was chosen by NIST in 2001 after a public competition and has since become the default symmetric cipher for nearly everything: encrypted hard drives, TLS connections, password managers, government communications. Understanding why it works requires stepping inside one round of the algorithm.
 
@@ -83,9 +83,9 @@ AES was chosen by NIST in 2001 after a public competition and has since become t
 
 ## Inside AES
 
-AES operates on 128-bit blocks of data — 16 bytes at a time. Visualize those 16 bytes arranged in a 4×4 grid. This grid is called the **state**. AES transforms the state through a sequence of rounds — 10 rounds for a 128-bit key, 14 for a 256-bit key. Each round applies operations designed to achieve two properties Claude Shannon identified in 1949 as the foundations of any strong cipher: **confusion** and **diffusion**.
+AES operates on 128-bit blocks of data, 16 bytes at a time. Visualize those 16 bytes arranged in a 4×4 grid. This grid is called the **state**. AES transforms the state through a sequence of rounds, 10 rounds for a 128-bit key, 14 for a 256-bit key. Each round applies operations designed to achieve two properties Claude Shannon identified in 1949 as the foundations of any strong cipher: **confusion** and **diffusion**.
 
-Confusion means that the relationship between the key and the ciphertext should be as complex and nonlinear as possible. Diffusion means that each bit of plaintext should influence as many bits of ciphertext as possible — changing one input bit should ripple through the entire output.
+Confusion means that the relationship between the key and the ciphertext should be as complex and nonlinear as possible. Diffusion means that each bit of plaintext should influence as many bits of ciphertext as possible, changing one input bit should ripple through the entire output.
 
 <AESStateDemo />
 
@@ -93,11 +93,11 @@ Each round applies four operations in sequence:
 
 **SubBytes** handles confusion. Each byte in the state is passed through a fixed lookup table called the **S-box** (substitution box). The S-box was designed carefully to be highly nonlinear, which prevents mathematical attacks that could exploit simple algebraic structure. The mapping is fixed and public; the protection comes from the key applied in other steps.
 
-**ShiftRows** begins diffusion. The rows of the 4×4 state are cyclically shifted: row zero stays put, row one shifts left by one position, row two by two, row three by three. This rearranges which column each byte lives in — setting up the next step.
+**ShiftRows** begins diffusion. The rows of the 4×4 state are cyclically shifted: row zero stays put, row one shifts left by one position, row two by two, row three by three. This rearranges which column each byte lives in, setting up the next step.
 
 **MixColumns** is where diffusion really happens. Each column of the state is treated as a four-element vector and multiplied by a fixed matrix in a Galois field, which keeps all values neatly within a single byte. Each output byte in a column now depends on all four input bytes of that column. Combined with ShiftRows, after two rounds every output byte depends on every input byte.
 
-**AddRoundKey** brings the key in. A portion of the key — a **round key** derived from the original key through the key schedule — is XORed directly into the state. This is the step that ties the ciphertext to the secret.
+**AddRoundKey** brings the key in. A portion of the key, a **round key** derived from the original key through the key schedule, is XORed directly into the state. This is the step that ties the ciphertext to the secret.
 
 Each round applies all four operations. Then the cycle repeats with a freshly derived round key. By the final round, the state has been stirred so thoroughly that there is no known practical way to reverse the process without knowing the key.
 
@@ -105,8 +105,8 @@ Each round applies all four operations. Then the cycle repeats with a freshly de
 
 ## The same key, both directions
 
-What makes all of this *symmetric* is that decryption is simply the reverse. AES defines an inverse for each operation — InvSubBytes, InvShiftRows, InvMixColumns — and applies them in the reverse order with the round keys used in reverse. The key you encrypt with is the key you decrypt with. The same secret that locks the message unlocks it.
+What makes all of this *symmetric* is that decryption is simply the reverse. AES defines an inverse for each operation, InvSubBytes, InvShiftRows, InvMixColumns, and applies them in the reverse order with the round keys used in reverse. The key you encrypt with is the key you decrypt with. The same secret that locks the message unlocks it.
 
-This is both the strength and the limitation of symmetric encryption. It's fast — hardware acceleration for AES is baked into every modern processor, and you can encrypt gigabytes per second. But it requires that both parties already share a secret key. For our general and commander, that means establishing the key before the campaign begins. For two strangers on the internet who've never met, it raises a harder question: how do you agree on a shared secret over a channel anyone can observe?
+This is both the strength and the limitation of symmetric encryption. It's fast, hardware acceleration for AES is baked into every modern processor, and you can encrypt gigabytes per second. But it requires that both parties already share a secret key. For our general and commander, that means establishing the key before the campaign begins. For two strangers on the internet who've never met, it raises a harder question: how do you agree on a shared secret over a channel anyone can observe?
 
-That's the problem symmetric encryption cannot solve on its own — and it's exactly where asymmetric encryption begins.
+That's the problem symmetric encryption cannot solve on its own, and it's exactly where asymmetric encryption begins.

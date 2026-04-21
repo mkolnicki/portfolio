@@ -13,17 +13,17 @@ tags: ["cryptography", "security"]
 	import DHExchangeDemo from '$lib/components/demos/DHExchangeDemo.svelte';
 </script>
 
-RSA solved key distribution in one way: encrypt the key itself under a public key and send it over. But this requires the recipient to already have a public key — and for that key to be trustworthy. There's a different approach, one that feels almost paradoxical when you first encounter it, that solves the same problem without any prior setup at all.
+RSA solved key distribution in one way: encrypt the key itself under a public key and send it over. But this requires the recipient to already have a public key, and for that key to be trustworthy. There's a different approach, one that feels almost paradoxical when you first encounter it, that solves the same problem without any prior setup at all.
 
 The question it answers: can two people, communicating entirely over a channel their adversary can observe in full, agree on a shared secret that the adversary cannot determine?
 
-The intuitive answer is no. If every message is visible, how could anything be secret? The answer, developed by Whitfield Diffie and Martin Hellman in 1976, is yes — and the mechanism is one of the most elegant ideas in modern mathematics.
+The intuitive answer is no. If every message is visible, how could anything be secret? The answer, developed by Whitfield Diffie and Martin Hellman in 1976, is yes, and the mechanism is one of the most elegant ideas in modern mathematics.
 
 ---
 
 ## Colors as intuition
 
-Before the math, consider an analogy. You and a stranger both start with a can of yellow paint — publicly known, visible to anyone. You each choose a secret color and mix it with your yellow. You exchange the mixtures publicly. The enemy sees both mixtures but doesn't know either secret color. Now you each take the mixture you received and add your own secret color. You end up with yellow + your secret + their secret. So do they. You've both arrived at the same color — a combination of three components — without ever transmitting it.
+Before the math, consider an analogy. You and a stranger both start with a can of yellow paint, publicly known, visible to anyone. You each choose a secret color and mix it with your yellow. You exchange the mixtures publicly. The enemy sees both mixtures but doesn't know either secret color. Now you each take the mixture you received and add your own secret color. You end up with yellow + your secret + their secret. So do they. You've both arrived at the same color, a combination of three components, without ever transmitting it.
 
 The key insight is that paint mixing is easy to do but hard to reverse. You can't un-mix colors. The enemy can see both public mixtures but can't extract the secret colors from them, so they can't reconstruct the final combination.
 
@@ -37,7 +37,7 @@ Diffie-Hellman does the same thing, with a mathematical operation that's easy fo
 
 ## The discrete logarithm problem
 
-Pick a large prime p and a number g — called the **generator** — that works well with p. Both are public. Now Alice picks a secret integer a and computes:
+Pick a large prime p and a number g, called the **generator**, that works well with p. Both are public. Now Alice picks a secret integer a and computes:
 
 ```
 A = gᵃ mod p
@@ -61,7 +61,7 @@ And Bob computes:
 S = Aᵇ mod p
 ```
 
-Both arrive at gᵃᵇ mod p — the same value. This is their shared secret, and neither transmitted it. The adversary, to recover it, would need to find a from A = gᵃ mod p — which means solving the **discrete logarithm problem**. As far as anyone knows, there's no efficient way to do this for large p. The forward direction (exponentiation) is fast; the backward direction (logarithm in the modular sense) is not.
+Both arrive at gᵃᵇ mod p, the same value. This is their shared secret, and neither transmitted it. The adversary, to recover it, would need to find a from A = gᵃ mod p, which means solving the **discrete logarithm problem**. As far as anyone knows, there's no efficient way to do this for large p. The forward direction (exponentiation) is fast; the backward direction (logarithm in the modular sense) is not.
 
 <DHExchangeDemo />
 
@@ -77,7 +77,7 @@ Suppose the adversary doesn't just observe but actively intercepts. When Alice s
 
 Diffie-Hellman by itself cannot detect this, because neither party has any way to verify who they're actually talking to. A and B are just numbers; they don't come with proof of origin.
 
-This is why Diffie-Hellman is almost always paired with authentication — a way to verify identity. In TLS, for instance, the server's Diffie-Hellman parameters are signed with its private key, and the client verifies that signature against a certificate. The exchange provides the shared secret; the certificate provides the assurance that the secret was established with the right party.
+This is why Diffie-Hellman is almost always paired with authentication, a way to verify identity. In TLS, for instance, the server's Diffie-Hellman parameters are signed with its private key, and the client verifies that signature against a certificate. The exchange provides the shared secret; the certificate provides the assurance that the secret was established with the right party.
 
 ---
 
@@ -85,14 +85,14 @@ This is why Diffie-Hellman is almost always paired with authentication — a way
 
 Modern deployments rarely use the original integer-based Diffie-Hellman. Instead, they use **Elliptic Curve Diffie-Hellman**, or **ECDH**, which achieves the same result using a different mathematical structure.
 
-An **elliptic curve** is a set of points satisfying an equation of the form y² = x³ + ax + b, defined over a finite field. On this curve, there's a notion of "adding" two points together — a geometric operation that produces a third point on the curve. Repeated addition — adding a point to itself k times — is called **scalar multiplication**: k × P. This is fast to compute. Recovering k from k × P and P is the **elliptic curve discrete logarithm problem**, and it's believed to be harder than its integer counterpart.
+An **elliptic curve** is a set of points satisfying an equation of the form y² = x³ + ax + b, defined over a finite field. On this curve, there's a notion of "adding" two points together, a geometric operation that produces a third point on the curve. Repeated addition, adding a point to itself k times, is called **scalar multiplication**: k × P. This is fast to compute. Recovering k from k × P and P is the **elliptic curve discrete logarithm problem**, and it's believed to be harder than its integer counterpart.
 
-Why does this matter? Hardness translates directly to key size. To achieve 128-bit security with integer-based Diffie-Hellman requires a modulus of roughly 3072 bits. The same security level with elliptic curves requires a key of only 256 bits. Smaller keys mean faster computation and less bandwidth — critical for mobile devices and embedded systems. This is why ECDH has largely replaced its predecessor. The TLS handshake securing most HTTPS connections today almost certainly uses a named elliptic curve, often X25519, designed for efficiency and resistance to a range of subtle attacks.
+Why does this matter? Hardness translates directly to key size. To achieve 128-bit security with integer-based Diffie-Hellman requires a modulus of roughly 3072 bits. The same security level with elliptic curves requires a key of only 256 bits. Smaller keys mean faster computation and less bandwidth, critical for mobile devices and embedded systems. This is why ECDH has largely replaced its predecessor. The TLS handshake securing most HTTPS connections today almost certainly uses a named elliptic curve, often X25519, designed for efficiency and resistance to a range of subtle attacks.
 
 ---
 
 ## Ephemeral keys and forward secrecy
 
-One more concept that Diffie-Hellman enables naturally. In a hybrid RSA scheme, if an attacker records all your encrypted traffic and later steals your private key, they can decrypt everything you ever sent — because the session keys were all encrypted under your long-term key.
+One more concept that Diffie-Hellman enables naturally. In a hybrid RSA scheme, if an attacker records all your encrypted traffic and later steals your private key, they can decrypt everything you ever sent, because the session keys were all encrypted under your long-term key.
 
 ECDH can be run in **ephemeral** mode: both parties generate fresh key pairs for each session, derive the shared secret, and then discard those key pairs. The shared secret is never transmitted. If an attacker compromises your long-term key tomorrow, they gain nothing from recorded traffic today, because the ephemeral keys no longer exist. This property is called **perfect forward secrecy**, and it's why modern TLS strongly prefers ephemeral key exchange. Past sessions stay private even in the event of future compromise.

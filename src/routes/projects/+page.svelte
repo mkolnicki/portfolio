@@ -111,6 +111,9 @@
 		min-height: 24rem;
 		border-radius: var(--radius-2xl);
 		overflow: hidden;
+		isolation: isolate;
+		-webkit-mask-image: -webkit-radial-gradient(white, black);
+		mask-image: radial-gradient(white, black);
 		margin-bottom: 2.5rem;
 		transition:
 			transform 250ms var(--ease-spring),
@@ -147,6 +150,7 @@
 		inset: 0;
 		pointer-events: none;
 		overflow: hidden;
+		border-radius: inherit;
 	}
 
 	.featured__image {
@@ -176,7 +180,10 @@
 	.featured__overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to top, color-mix(in srgb, var(--color-bg) 95%, transparent) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 60%, transparent 100%);
+		border-radius: inherit;
+		background:
+			linear-gradient(to right, color-mix(in srgb, var(--color-bg) 92%, transparent) 0%, color-mix(in srgb, var(--color-bg) 70%, transparent) 40%, color-mix(in srgb, var(--color-bg) 20%, transparent) 100%),
+			linear-gradient(to top, color-mix(in srgb, var(--color-bg) 85%, transparent) 0%, color-mix(in srgb, var(--color-bg) 30%, transparent) 60%, transparent 100%);
 		z-index: 1;
 	}
 

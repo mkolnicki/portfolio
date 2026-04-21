@@ -13,7 +13,7 @@
 		</h1>
 		<div class="hero__content" use:reveal={{ delay: 300, distance: '20px', duration: 800 }}>
 			<p class="hero__tagline">Matthew Kolnicki — Software engineer working at the intersection of AI and modern web development. I care about craft, clarity, and shipping work that holds up.</p>
-			<a href="#projects" class="hero__cta">Explore my work</a>
+			<a href="projects" class="hero__cta">Explore my work</a>
 		</div>
 	</div>
 </section>

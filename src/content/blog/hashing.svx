@@ -2,7 +2,7 @@
 title: "What You Can't Unhash"
 slug: "hashing"
 date: "2026-03-28"
-excerpt: "Why some transformations are meant to be one-way — and what that makes possible."
+excerpt: "Why some transformations are meant to be one-way, and what that makes possible."
 featured: true
 readingMinutes: 7
 tags: ["cryptography", "security"]
@@ -14,9 +14,9 @@ tags: ["cryptography", "security"]
 	import SaltDemo from '$lib/components/demos/SaltDemo.svelte';
 </script>
 
-Go back to the general. The orders arrived, the commander decrypted them, and the message reads clearly. But now a subtler worry surfaces: what if the enemy didn't read the message — what if they *changed* it? A courier is captured, the ciphertext tampered with, and then released. The commander decrypts something that looks like orders but isn't. The encryption protected secrecy. It said nothing about whether the message was genuine.
+Go back to the general. The orders arrived, the commander decrypted them, and the message reads clearly. But now a subtler worry surfaces: what if the enemy didn't read the message, what if they *changed* it? A courier is captured, the ciphertext tampered with, and then released. The commander decrypts something that looks like orders but isn't. The encryption protected secrecy. It said nothing about whether the message was genuine.
 
-Secrecy and integrity are different problems. We've solved the first. Now we need a tool for the second — something that lets the commander look at a message and know, with confidence, that it arrived exactly as it was sent.
+Secrecy and integrity are different problems. We've solved the first. Now we need a tool for the second, something that lets the commander look at a message and know, with confidence, that it arrived exactly as it was sent.
 
 The tool we need doesn't encrypt anything. It doesn't produce something reversible. It produces a **fingerprint**.
 
@@ -24,15 +24,15 @@ The tool we need doesn't encrypt anything. It doesn't produce something reversib
 
 ## The idea of a fingerprint
 
-A human fingerprint has a useful property: it's derived from the finger, it's compact, and — ideally — no two fingers produce the same one. You can verify a fingerprint against a database without keeping the finger on file. The fingerprint is evidence, not a copy.
+A human fingerprint has a useful property: it's derived from the finger, it's compact, and, ideally, no two fingers produce the same one. You can verify a fingerprint against a database without keeping the finger on file. The fingerprint is evidence, not a copy.
 
-We want something analogous for data. Feed in an arbitrary message — a sentence, a file, a hard drive's worth of data — and get back a short, fixed-length string of bits that represents it. This output is called a **hash** or **digest**, and the function that produces it is called a **cryptographic hash function**.
+We want something analogous for data. Feed in an arbitrary message, a sentence, a file, a hard drive's worth of data, and get back a short, fixed-length string of bits that represents it. This output is called a **hash** or **digest**, and the function that produces it is called a **cryptographic hash function**.
 
-For a hash function to be useful, it needs three properties. First, it must be deterministic: the same input always produces the same output. Second, it must be fast to compute in the forward direction. Third — and this is what separates a cryptographic hash from a mere checksum — it must be practically impossible to run backwards. Given a hash, you should have no way to recover the original input, or to construct *any* input that produces that hash.
+For a hash function to be useful, it needs three properties. First, it must be deterministic: the same input always produces the same output. Second, it must be fast to compute in the forward direction. Third, and this is what separates a cryptographic hash from a mere checksum, it must be practically impossible to run backwards. Given a hash, you should have no way to recover the original input, or to construct *any* input that produces that hash.
 
 <HashAvalancheDemo />
 
-Edit the input above. Even changing a single character cascades into a completely different digest — typically flipping around half the output bits. This is the **avalanche effect**: the defining property of a well-designed hash function, and the reason that tampered data is immediately detectable.
+Edit the input above. Even changing a single character cascades into a completely different digest, typically flipping around half the output bits. This is the **avalanche effect**: the defining property of a well-designed hash function, and the reason that tampered data is immediately detectable.
 
 That third property is what makes a fingerprint useful. The commander and general agree on a hash function ahead of time. Before sending orders, the general hashes the message and records the digest. When the orders arrive, the commander hashes the received message and compares the result. If a single bit was altered in transit, the digest will be completely different. Matching digests mean the message is intact.
 
@@ -40,29 +40,29 @@ That third property is what makes a fingerprint useful. The commander and genera
 
 ## MD5 and what went wrong
 
-The first widely deployed cryptographic hash function most people encounter is **MD5**, designed by Ron Rivest in 1991. It takes an input of any length and produces a 128-bit digest — 32 hexadecimal characters. For a decade it was everywhere: checksums for downloaded files, storing passwords, verifying software packages.
+The first widely deployed cryptographic hash function most people encounter is **MD5**, designed by Ron Rivest in 1991. It takes an input of any length and produces a 128-bit digest, 32 hexadecimal characters. For a decade it was everywhere: checksums for downloaded files, storing passwords, verifying software packages.
 
-MD5 works by breaking the input into 512-bit blocks and processing them through a sequence of bitwise operations — XOR, AND, OR, rotations — mixed with a set of constants derived from the sine function. Each block feeds into a running state, churning it in ways designed to be irreversible. After all blocks are processed, the final state is your 128-bit digest.
+MD5 works by breaking the input into 512-bit blocks and processing them through a sequence of bitwise operations, XOR, AND, OR, rotations, mixed with a set of constants derived from the sine function. Each block feeds into a running state, churning it in ways designed to be irreversible. After all blocks are processed, the final state is your 128-bit digest.
 
 The problem isn't in the design philosophy. The problem is in the math.
 
-In 2004, researchers discovered that MD5 is vulnerable to **collision attacks**. A **collision** is when two different inputs produce the same hash. In an ideal hash function, finding a collision should require trying roughly 2⁶⁴ inputs — the birthday bound for a 128-bit output — which is computationally infeasible. MD5's internal structure has weaknesses that bring this down to the point where collisions can be found in seconds on a laptop.
+In 2004, researchers discovered that MD5 is vulnerable to **collision attacks**. A **collision** is when two different inputs produce the same hash. In an ideal hash function, finding a collision should require trying roughly 2⁶⁴ inputs, the birthday bound for a 128-bit output, which is computationally infeasible. MD5's internal structure has weaknesses that bring this down to the point where collisions can be found in seconds on a laptop.
 
-This is catastrophic for integrity checking. If I can craft a malicious file that hashes to the same digest as a legitimate one, I can substitute it and the hash check passes. In 2012, the Flame malware exploited an MD5 collision to forge a Microsoft code-signing certificate — making malicious software appear as legitimate Windows updates. The attack was theoretical until it wasn't.
+This is catastrophic for integrity checking. If I can craft a malicious file that hashes to the same digest as a legitimate one, I can substitute it and the hash check passes. In 2012, the Flame malware exploited an MD5 collision to forge a Microsoft code-signing certificate, making malicious software appear as legitimate Windows updates. The attack was theoretical until it wasn't.
 
-MD5 is not broken in every possible sense. For non-security purposes — detecting accidental corruption, deduplicating files — it still works fine. But for anything where an adversary might be involved, it should not be used. It hasn't been acceptable for cryptographic purposes for twenty years, and yet it persists.
+MD5 is not broken in every possible sense. For non-security purposes, detecting accidental corruption, deduplicating files, it still works fine. But for anything where an adversary might be involved, it should not be used. It hasn't been acceptable for cryptographic purposes for twenty years, and yet it persists.
 
 ---
 
 ## The SHA family
 
-The response to MD5's weaknesses was a series of progressively stronger designs, grouped under the name **SHA** — **Secure Hash Algorithm** — developed by the NSA and standardized by NIST.
+The response to MD5's weaknesses was a series of progressively stronger designs, grouped under the name **SHA**, **Secure Hash Algorithm**, developed by the NSA and standardized by NIST.
 
-**SHA-1**, released in 1995, produces a 160-bit digest. It was an improvement over MD5, but not a permanent one. Theoretical weaknesses were identified in the mid-2000s, and in 2017, Google's security team executed the first practical SHA-1 collision — the **SHAttered** attack — producing two different PDF files with identical SHA-1 digests. SHA-1 is now retired from serious use.
+**SHA-1**, released in 1995, produces a 160-bit digest. It was an improvement over MD5, but not a permanent one. Theoretical weaknesses were identified in the mid-2000s, and in 2017, Google's security team executed the first practical SHA-1 collision, the **SHAttered** attack, producing two different PDF files with identical SHA-1 digests. SHA-1 is now retired from serious use.
 
-**SHA-2** is the current workhorse. It's not a single algorithm but a family — SHA-224, SHA-256, SHA-384, SHA-512 — differing in digest length and internal word size. SHA-256 is the most widely deployed: it secures Bitcoin transactions, TLS certificates, and package signing across virtually every Linux distribution. The internal design is similar in spirit to SHA-1 but with a wider state, more rounds, and careful changes to the constants and operations that have, so far, kept it free of practical attacks.
+**SHA-2** is the current workhorse. It's not a single algorithm but a family, SHA-224, SHA-256, SHA-384, SHA-512, differing in digest length and internal word size. SHA-256 is the most widely deployed: it secures Bitcoin transactions, TLS certificates, and package signing across virtually every Linux distribution. The internal design is similar in spirit to SHA-1 but with a wider state, more rounds, and careful changes to the constants and operations that have, so far, kept it free of practical attacks.
 
-**SHA-3**, standardized in 2015, is architecturally distinct. Where SHA-1 and SHA-2 belong to a family called Merkle–Damgård constructions — processing blocks sequentially, each feeding into the next — SHA-3 uses a completely different approach called a **sponge construction**. The input is "absorbed" into a large internal state, then the digest is "squeezed" out. The underlying permutation, Keccak, was chosen through a public competition precisely because it shares no structural DNA with SHA-2. If a fundamental weakness were ever found in the Merkle–Damgård design, SHA-3 would be unaffected. It's a hedge, and a prudent one.
+**SHA-3**, standardized in 2015, is architecturally distinct. Where SHA-1 and SHA-2 belong to a family called Merkle–Damgård constructions, processing blocks sequentially, each feeding into the next, SHA-3 uses a completely different approach called a **sponge construction**. The input is "absorbed" into a large internal state, then the digest is "squeezed" out. The underlying permutation, Keccak, was chosen through a public competition precisely because it shares no structural DNA with SHA-2. If a fundamental weakness were ever found in the Merkle–Damgård design, SHA-3 would be unaffected. It's a hedge, and a prudent one.
 
 ---
 
@@ -72,17 +72,17 @@ Here is a property we've assumed is desirable: hash functions should be fast. Fa
 
 Except when it isn't.
 
-Consider how passwords are typically stored. A website can't keep your password in plaintext — if their database is stolen, every user's password is exposed. The standard solution is to store a hash of the password instead. When you log in, the server hashes what you typed and compares it to the stored hash. The original password never touches storage.
+Consider how passwords are typically stored. A website can't keep your password in plaintext, if their database is stolen, every user's password is exposed. The standard solution is to store a hash of the password instead. When you log in, the server hashes what you typed and compares it to the stored hash. The original password never touches storage.
 
-Now consider what happens when an attacker steals that database. They have a list of password hashes. They can't reverse the hashes directly — that's the point — but they can do something almost as effective: guess. Take a list of common passwords, hash each one, and check it against every hash in the database. If the hash function is fast, this is fast. SHA-256 can compute billions of hashes per second on consumer hardware. A modern GPU cluster can churn through the entire space of eight-character passwords — uppercase, lowercase, digits, symbols — in hours.
+Now consider what happens when an attacker steals that database. They have a list of password hashes. They can't reverse the hashes directly, that's the point, but they can do something almost as effective: guess. Take a list of common passwords, hash each one, and check it against every hash in the database. If the hash function is fast, this is fast. SHA-256 can compute billions of hashes per second on consumer hardware. A modern GPU cluster can churn through the entire space of eight-character passwords, uppercase, lowercase, digits, symbols, in hours.
 
 <HashSpeedDemo />
 
 This is the attack that speed enables: not mathematical cryptanalysis, but brute-force guessing at scale. A hash function designed to be fast becomes, in this context, the attacker's best friend.
 
-The solution is to use hash functions that are *deliberately slow* — tunable algorithms calibrated to take a meaningful amount of time per attempt. **bcrypt**, designed in 1999, introduced a **cost factor**: a parameter that controls how many iterations of its internal function are performed. Set it to 12 and each hash takes around 300 milliseconds. For a legitimate login, that's imperceptible. For an attacker checking a billion guesses, that's years.
+The solution is to use hash functions that are *deliberately slow*, tunable algorithms calibrated to take a meaningful amount of time per attempt. **bcrypt**, designed in 1999, introduced a **cost factor**: a parameter that controls how many iterations of its internal function are performed. Set it to 12 and each hash takes around 300 milliseconds. For a legitimate login, that's imperceptible. For an attacker checking a billion guesses, that's years.
 
-**scrypt** and **Argon2** go further. They're not just slow but **memory-hard**: computing them correctly requires a large amount of RAM. This matters because attackers often use specialized hardware — ASICs, FPGAs, GPU farms — that can parallelize hash computation cheaply. Memory-hard functions partially defeat this, because memory bandwidth doesn't scale as easily as raw compute. Argon2 won the Password Hashing Competition in 2015 and is the current recommended default for password storage.
+**scrypt** and **Argon2** go further. They're not just slow but **memory-hard**: computing them correctly requires a large amount of RAM. This matters because attackers often use specialized hardware, ASICs, FPGAs, GPU farms, that can parallelize hash computation cheaply. Memory-hard functions partially defeat this, because memory bandwidth doesn't scale as easily as raw compute. Argon2 won the Password Hashing Competition in 2015 and is the current recommended default for password storage.
 
 The principle is counterintuitive but firm: in the context of passwords, a fast hash function is a vulnerability. Speed is what the attacker needs, and we deny it to them by design.
 
@@ -90,19 +90,19 @@ The principle is counterintuitive but firm: in the context of passwords, a fast 
 
 ## What hashing can't do alone
 
-There's one more trap worth naming. Suppose two users share the same password — say, the perennial favorite "hunter2." If you hash passwords directly, they'll produce identical digests. An attacker who spots a repeated hash in the database immediately knows multiple accounts share a credential. Worse, they only need to crack it once to compromise all of them. And precomputed tables — **rainbow tables** — let attackers reverse billions of common hashes instantly, without guessing at all.
+There's one more trap worth naming. Suppose two users share the same password, say, the perennial favorite "hunter2." If you hash passwords directly, they'll produce identical digests. An attacker who spots a repeated hash in the database immediately knows multiple accounts share a credential. Worse, they only need to crack it once to compromise all of them. And precomputed tables, **rainbow tables**, let attackers reverse billions of common hashes instantly, without guessing at all.
 
 <SaltDemo />
 
-The fix is a **salt**: a random value, unique per user, concatenated with the password before hashing. The salt is stored in plaintext alongside the hash — it's not a secret. Its purpose isn't to be hidden; it's to make each hash input unique even when passwords collide. "hunter2" plus a random 16-byte salt produces a completely different hash for each user. Precomputed attack tables become useless. Bcrypt, scrypt, and Argon2 all build salting in automatically, which is part of why they're preferred over rolling your own solution with SHA-256.
+The fix is a **salt**: a random value, unique per user, concatenated with the password before hashing. The salt is stored in plaintext alongside the hash, it's not a secret. Its purpose isn't to be hidden; it's to make each hash input unique even when passwords collide. "hunter2" plus a random 16-byte salt produces a completely different hash for each user. Precomputed attack tables become useless. Bcrypt, scrypt, and Argon2 all build salting in automatically, which is part of why they're preferred over rolling your own solution with SHA-256.
 
 ---
 
 ## The shape of the tool
 
-Hashing occupies a specific and irreplaceable position in the cryptographic toolkit. It doesn't keep secrets — a hash reveals nothing about the input, but it also provides no confidentiality the way encryption does. What it provides is a verifiable link between data and a short, fixed representation of that data, in a way that's easy to compute in one direction and infeasible in the other.
+Hashing occupies a specific and irreplaceable position in the cryptographic toolkit. It doesn't keep secrets, a hash reveals nothing about the input, but it also provides no confidentiality the way encryption does. What it provides is a verifiable link between data and a short, fixed representation of that data, in a way that's easy to compute in one direction and infeasible in the other.
 
-That one-way quality is the foundation for more than integrity checking. It's what makes digital signatures possible, what lets certificate authorities vouch for public keys, and — with deliberate slowness added — what makes password storage viable. Almost every higher-level security protocol we'll look at later is built, somewhere in its plumbing, on a hash function.
+That one-way quality is the foundation for more than integrity checking. It's what makes digital signatures possible, what lets certificate authorities vouch for public keys, and, with deliberate slowness added, what makes password storage viable. Almost every higher-level security protocol we'll look at later is built, somewhere in its plumbing, on a hash function.
 
 The general can now send orders with confidence on two fronts: the message is unreadable to anyone without the key, and any tampering will be detected. But there remains a deeper problem neither encryption nor hashing has touched. Both assume the general and commander already share a secret. How did that secret get there in the first place?
 
