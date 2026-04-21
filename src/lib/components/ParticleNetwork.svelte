@@ -17,10 +17,9 @@
 		hideControls = false
 	}: Props = $props();
 
+	let canvas: HTMLCanvasElement;
 	let wrapper: HTMLDivElement;
-	let mouseX = $state(0.5);
-	let mouseY = $state(0.5);
-	let frame = 0;
+	let controlsOpen = $state(false);
 	let animating = $state(true);
 
 	// svelte-ignore state_referenced_locally
@@ -30,12 +29,16 @@
 	let speedMultiplier = $state(1);
 	// svelte-ignore state_referenced_locally
 	let mode: InteractionMode = $state(initialMode);
-	let controlsOpen = $state(false);
 
-	// Virtual cursor for keyboard nav
-	let virtualCursorActive = $state(false);
-	let virtualX = $state(0.5);
-	let virtualY = $state(0.5);
+	let mouseNormX = 0.5;
+	let mouseNormY = 0.5;
+	let virtualCursorActive = false;
+	let virtualNormX = 0.5;
+	let virtualNormY = 0.5;
+	let frameCount = 0;
+	let canvasW = 600;
+	let canvasH = 400;
+	let nextId = 0;
 
 	interface Particle {
 		id: number;
@@ -49,27 +52,20 @@
 		phase: number;
 	}
 
-	// Use $state.raw to avoid proxy overhead during physics simulation
-	let particles = $state.raw<Particle[]>([]);
-	let width = $state(600);
-	let height = $state(400);
-	let nextId = 0;
+	let particles: Particle[] = [];
 
-	// Connection lines computed in rAF tick — raw to avoid proxy overhead
-	let connections = $state.raw<{ x1: number; y1: number; x2: number; y2: number; opacity: number }[]>(
-		[]
-	);
+	const OPACITY_BINS = 20;
 
-	function initParticles() {
-		const cols = Math.round(Math.sqrt((particleCount * width) / height));
-		const rows = Math.round(particleCount / cols);
+	function buildParticles(count: number, w: number, h: number): Particle[] {
+		const cols = Math.round(Math.sqrt((count * w) / h));
+		const rows = Math.round(count / cols);
 		const p: Particle[] = [];
 		nextId = 0;
 		for (let row = 0; row < rows; row++) {
 			for (let col = 0; col < cols; col++) {
-				if (p.length >= particleCount) break;
-				const baseX = ((col + 0.5) / cols) * width;
-				const baseY = ((row + 0.5) / rows) * height;
+				if (p.length >= count) break;
+				const baseX = ((col + 0.5) / cols) * w;
+				const baseY = ((row + 0.5) / rows) * h;
 				p.push({
 					id: nextId++,
 					baseX,
@@ -83,158 +79,207 @@
 				});
 			}
 		}
-		particles = p;
+		return p;
+	}
+
+	function hexToRgb(hex: string): [number, number, number] {
+		hex = hex.replace('#', '');
+		if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+		return [
+			parseInt(hex.slice(0, 2), 16),
+			parseInt(hex.slice(2, 4), 16),
+			parseInt(hex.slice(4, 6), 16)
+		];
 	}
 
 	$effect(() => {
-		if (!browser) return;
-		// Re-init when particleCount changes (read it to create dependency)
-		void particleCount;
-		initParticles();
-	});
+		if (!browser || !canvas || !wrapper) return;
 
-	// Spatial hash for O(n) connection lookups
-	function buildSpatialHash(pts: Particle[], cellSize: number) {
-		const grid = new Map<string, Particle[]>();
-		for (const p of pts) {
-			const cx = Math.floor(p.x / cellSize);
-			const cy = Math.floor(p.y / cellSize);
-			const key = `${cx},${cy}`;
-			const cell = grid.get(key);
-			if (cell) cell.push(p);
-			else grid.set(key, [p]);
+		const count = particleCount;
+
+		const style = getComputedStyle(wrapper);
+		const accent = style.getPropertyValue('--color-accent').trim() || '#01796F';
+		const [cr, cg, cb] = hexToRgb(accent);
+
+		const dpr = window.devicePixelRatio || 1;
+		const ctx = canvas.getContext('2d')!;
+
+		function resize() {
+			const rect = wrapper.getBoundingClientRect();
+			canvasW = rect.width;
+			canvasH = rect.height;
+			canvas.width = canvasW * dpr;
+			canvas.height = canvasH * dpr;
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			particles = buildParticles(count, canvasW, canvasH);
 		}
-		return grid;
-	}
 
-	function computeConnections(pts: Particle[], dist: number, mx: number, my: number) {
-		const lines: { x1: number; y1: number; x2: number; y2: number; opacity: number }[] = [];
-		const grid = buildSpatialHash(pts, dist);
-		const distSq = dist * dist;
-		const cursorRadiusSq = 250 * 250;
-		// Bitmap for deduplication — avoids string allocation + Set overhead
-		const n = pts.length;
-		const seen = new Uint8Array(n * n);
+		resize();
 
-		for (const p of pts) {
-			const cx = Math.floor(p.x / dist);
-			const cy = Math.floor(p.y / dist);
+		const ro = new ResizeObserver(resize);
+		ro.observe(wrapper);
 
-			for (let dx = -1; dx <= 1; dx++) {
-				for (let dy = -1; dy <= 1; dy++) {
-					const key = `${cx + dx},${cy + dy}`;
-					const cell = grid.get(key);
-					if (!cell) continue;
+		// Pre-allocate flat connection bins: each stores [x1, y1, x2, y2, ...]
+		const bins: number[][] = Array.from({ length: OPACITY_BINS }, () => []);
+		let alive = true;
 
-					for (const q of cell) {
-						if (q.id <= p.id) continue;
-						const idx = p.id * n + q.id;
-						if (seen[idx]) continue;
-						seen[idx] = 1;
+		function tick() {
+			if (!alive) return;
 
-						const ddx = p.x - q.x;
-						const ddy = p.y - q.y;
-						const dSq = ddx * ddx + ddy * ddy;
-						if (dSq < distSq) {
-							const d = Math.sqrt(dSq);
+			if (!animating || !active) {
+				requestAnimationFrame(tick);
+				return;
+			}
+
+			frameCount++;
+			const currentSpeed = speedMultiplier;
+			const t = frameCount * 0.02 * currentSpeed;
+			const mx = (virtualCursorActive ? virtualNormX : mouseNormX) * canvasW;
+			const my = (virtualCursorActive ? virtualNormY : mouseNormY) * canvasH;
+			const DAMPING = 0.96;
+			const influenceRadiusSq = 40000; // 200 * 200
+			const currentMode = mode;
+			const currentAttr = attractionStrength;
+			const dist = connectionDist;
+
+			for (let i = 0; i < particles.length; i++) {
+				const p = particles[i];
+				const driftFx = Math.cos(t + p.phase) * 0.3 * currentSpeed;
+				const driftFy = -Math.sin(t * 0.7 + p.phase) * 0.3 * currentSpeed;
+
+				const dx = mx - p.x;
+				const dy = my - p.y;
+				const dSq = dx * dx + dy * dy;
+				const influence = dSq < influenceRadiusSq ? Math.max(0, 1 - Math.sqrt(dSq) / 200) : 0;
+				const dir = currentMode === 'repel' ? -1 : 1;
+
+				p.vx =
+					(p.vx +
+						driftFx +
+						dx * influence * currentAttr * dir +
+						(p.baseX - p.x) * 0.005) *
+					DAMPING;
+				p.vy =
+					(p.vy +
+						driftFy +
+						dy * influence * currentAttr * dir +
+						(p.baseY - p.y) * 0.005) *
+					DAMPING;
+				p.x += p.vx;
+				p.y += p.vy;
+			}
+
+			ctx.clearRect(0, 0, canvasW, canvasH);
+
+			// Spatial hash for connection lookups
+			const cellSize = dist;
+			const grid = new Map<number, number[]>();
+			for (let i = 0; i < particles.length; i++) {
+				const p = particles[i];
+				const key = ((p.x / cellSize) | 0) * 100000 + ((p.y / cellSize) | 0);
+				const cell = grid.get(key);
+				if (cell) cell.push(i);
+				else grid.set(key, [i]);
+			}
+
+			for (let i = 0; i < OPACITY_BINS; i++) bins[i].length = 0;
+
+			const distSq = dist * dist;
+			const cursorRadiusSq = 62500; // 250 * 250
+
+			for (let i = 0; i < particles.length; i++) {
+				const p = particles[i];
+				const cx = (p.x / cellSize) | 0;
+				const cy = (p.y / cellSize) | 0;
+
+				for (let ddx = -1; ddx <= 1; ddx++) {
+					for (let ddy = -1; ddy <= 1; ddy++) {
+						const key = (cx + ddx) * 100000 + (cy + ddy);
+						const cell = grid.get(key);
+						if (!cell) continue;
+
+						for (const j of cell) {
+							if (j <= i) continue;
+							const q = particles[j];
+							const ldx = p.x - q.x;
+							const ldy = p.y - q.y;
+							const d2 = ldx * ldx + ldy * ldy;
+							if (d2 >= distSq) continue;
+
+							const d = Math.sqrt(d2);
 							const rawOpacity = 1 - d / dist;
-							// Skip nearly invisible connections
 							if (rawOpacity < 0.05) continue;
-							// Brighter near cursor — use squared distance
+
 							const midX = (p.x + q.x) * 0.5;
 							const midY = (p.y + q.y) * 0.5;
 							const cdx = midX - mx;
 							const cdy = midY - my;
-							const cursorDistSq = cdx * cdx + cdy * cdy;
-							const cursorBoost = cursorDistSq < cursorRadiusSq
-								? (1 - Math.sqrt(cursorDistSq) / 250) * 0.4
-								: 0;
-							lines.push({
-								x1: p.x,
-								y1: p.y,
-								x2: q.x,
-								y2: q.y,
-								opacity: rawOpacity * (0.4 + cursorBoost)
-							});
+							const cd2 = cdx * cdx + cdy * cdy;
+							const cursorBoost =
+								cd2 < cursorRadiusSq ? (1 - Math.sqrt(cd2) / 250) * 0.4 : 0;
+							const opacity = rawOpacity * (0.4 + cursorBoost);
+
+							const bin = Math.min(OPACITY_BINS - 1, (opacity * OPACITY_BINS) | 0);
+							bins[bin].push(p.x, p.y, q.x, q.y);
 						}
 					}
 				}
 			}
-		}
-		return lines;
-	}
 
-	$effect(() => {
-		if (!browser || !animating || !active) return;
-
-		let raf: number;
-
-		function tick() {
-			frame++;
-			const t = frame * 0.02 * speedMultiplier;
-			const mx = (virtualCursorActive ? virtualX : mouseX) * width;
-			const my = (virtualCursorActive ? virtualY : mouseY) * height;
-			const DAMPING = 0.96;
-			const influenceRadiusSq = 200 * 200;
-
-			const pts = particles;
-			const newPts = new Array<Particle>(pts.length);
-			for (let i = 0; i < pts.length; i++) {
-				const p = pts[i];
-				// Sinusoidal drift force
-				const driftFx = Math.cos(t + p.phase) * 0.3 * speedMultiplier;
-				const driftFy = -Math.sin(t * 0.7 + p.phase) * 0.3 * speedMultiplier;
-
-				// Mouse interaction force — use squared distance to avoid sqrt
-				const dx = mx - p.x;
-				const dy = my - p.y;
-				const distSq = dx * dx + dy * dy;
-				const influence = distSq < influenceRadiusSq
-					? Math.max(0, 1 - Math.sqrt(distSq) / 200)
-					: 0;
-				const dir = mode === 'repel' ? -1 : 1;
-				const mouseFx = dx * influence * attractionStrength * dir;
-				const mouseFy = dy * influence * attractionStrength * dir;
-
-				// Spring force back to base
-				const springFx = (p.baseX - p.x) * 0.005;
-				const springFy = (p.baseY - p.y) * 0.005;
-
-				// Accumulate forces into velocity, then damp
-				const vx = (p.vx + driftFx + mouseFx + springFx) * DAMPING;
-				const vy = (p.vy + driftFy + mouseFy + springFy) * DAMPING;
-
-				// New object reference so $state.raw detects the change
-				newPts[i] = {
-					id: p.id,
-					baseX: p.baseX,
-					baseY: p.baseY,
-					x: p.x + vx,
-					y: p.y + vy,
-					vx,
-					vy,
-					size: p.size,
-					phase: p.phase
-				};
+			// Draw connections batched by opacity bin
+			ctx.lineWidth = 1;
+			for (let b = 0; b < OPACITY_BINS; b++) {
+				const data = bins[b];
+				if (data.length === 0) continue;
+				ctx.strokeStyle = `rgba(${cr},${cg},${cb},${(b + 0.5) / OPACITY_BINS})`;
+				ctx.beginPath();
+				for (let k = 0; k < data.length; k += 4) {
+					ctx.moveTo(data[k], data[k + 1]);
+					ctx.lineTo(data[k + 2], data[k + 3]);
+				}
+				ctx.stroke();
 			}
 
-			// Compute connections with spatial hash (uses new positions)
-			connections = computeConnections(newPts, connectionDist, mx, my);
-			// New array + new object refs triggers Svelte re-render
-			particles = newPts;
+			// Draw particles in two opacity passes
+			ctx.fillStyle = `rgba(${cr},${cg},${cb},0.5)`;
+			ctx.beginPath();
+			for (let i = 0; i < particles.length; i += 3) {
+				const p = particles[i];
+				const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+				const sz = p.size + Math.min(speed * 0.3, 2);
+				ctx.moveTo(p.x + sz, p.y);
+				ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+			}
+			ctx.fill();
 
-			raf = requestAnimationFrame(tick);
+			ctx.fillStyle = `rgba(${cr},${cg},${cb},0.7)`;
+			ctx.beginPath();
+			for (let i = 0; i < particles.length; i++) {
+				if (i % 3 === 0) continue;
+				const p = particles[i];
+				const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+				const sz = p.size + Math.min(speed * 0.3, 2);
+				ctx.moveTo(p.x + sz, p.y);
+				ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+			}
+			ctx.fill();
+
+			requestAnimationFrame(tick);
 		}
 
-		raf = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(raf);
+		requestAnimationFrame(tick);
+
+		return () => {
+			alive = false;
+			ro.disconnect();
+		};
 	});
 
 	function getMousePos(e: MouseEvent | Touch) {
 		const rect = wrapper?.getBoundingClientRect();
 		if (!rect) return;
-		mouseX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-		mouseY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+		mouseNormX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+		mouseNormY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 		virtualCursorActive = false;
 	}
 
@@ -243,8 +288,8 @@
 	}
 
 	function handleMouseLeave() {
-		mouseX = 0.5;
-		mouseY = 0.5;
+		mouseNormX = 0.5;
+		mouseNormY = 0.5;
 		virtualCursorActive = false;
 	}
 
@@ -253,9 +298,9 @@
 		const rect = wrapper?.getBoundingClientRect();
 		if (!rect) return;
 		if (particles.length >= 250) return;
-		const cx = ((e.clientX - rect.left) / rect.width) * width;
-		const cy = ((e.clientY - rect.top) / rect.height) * height;
-		particles = [...particles, {
+		const cx = ((e.clientX - rect.left) / rect.width) * canvasW;
+		const cy = ((e.clientY - rect.top) / rect.height) * canvasH;
+		particles.push({
 			id: nextId++,
 			baseX: cx,
 			baseY: cy,
@@ -265,51 +310,45 @@
 			vy: (Math.random() - 0.5) * 6,
 			size: 2 + Math.random() * 2,
 			phase: Math.random() * Math.PI * 2
-		}];
+		});
 	}
 
-	// Touch support
 	function handleTouchStart(e: TouchEvent) {
-		if (e.touches.length > 0) {
-			getMousePos(e.touches[0]);
-		}
+		if (e.touches.length > 0) getMousePos(e.touches[0]);
 	}
 
 	function handleTouchMove(e: TouchEvent) {
 		e.preventDefault();
-		if (e.touches.length > 0) {
-			getMousePos(e.touches[0]);
-		}
+		if (e.touches.length > 0) getMousePos(e.touches[0]);
 	}
 
 	function handleTouchEnd() {
-		mouseX = 0.5;
-		mouseY = 0.5;
+		mouseNormX = 0.5;
+		mouseNormY = 0.5;
 	}
 
-	// Keyboard support
 	function handleKeyDown(e: KeyboardEvent) {
 		const step = 0.03;
 		switch (e.key) {
 			case 'ArrowLeft':
 				e.preventDefault();
 				virtualCursorActive = true;
-				virtualX = Math.max(0, virtualX - step);
+				virtualNormX = Math.max(0, virtualNormX - step);
 				break;
 			case 'ArrowRight':
 				e.preventDefault();
 				virtualCursorActive = true;
-				virtualX = Math.min(1, virtualX + step);
+				virtualNormX = Math.min(1, virtualNormX + step);
 				break;
 			case 'ArrowUp':
 				e.preventDefault();
 				virtualCursorActive = true;
-				virtualY = Math.max(0, virtualY - step);
+				virtualNormY = Math.max(0, virtualNormY - step);
 				break;
 			case 'ArrowDown':
 				e.preventDefault();
 				virtualCursorActive = true;
-				virtualY = Math.min(1, virtualY + step);
+				virtualNormY = Math.min(1, virtualNormY + step);
 				break;
 			case ' ':
 				e.preventDefault();
@@ -323,11 +362,6 @@
 				break;
 			}
 		}
-	}
-
-	function particleDisplaySize(p: Particle): number {
-		const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-		return p.size + Math.min(speed * 0.3, 2);
 	}
 </script>
 
@@ -346,28 +380,7 @@
 	role="application"
 	aria-label="Interactive particle network animation. Use arrow keys to move cursor, Space to pause, M to change mode."
 >
-	<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
-		{#each connections as line, i (i)}
-			<line
-				x1={line.x1}
-				y1={line.y1}
-				x2={line.x2}
-				y2={line.y2}
-				stroke="var(--color-accent)"
-				stroke-width="1"
-				opacity={line.opacity}
-			/>
-		{/each}
-		{#each particles as p, i}
-			<circle
-				cx={p.x}
-				cy={p.y}
-				r={particleDisplaySize(p)}
-				fill="var(--color-accent)"
-				opacity={i % 3 === 0 ? 0.5 : 0.7}
-			/>
-		{/each}
-	</svg>
+	<canvas bind:this={canvas}></canvas>
 
 	{#if !hideControls}
 		<div class="controls-area">
@@ -381,10 +394,10 @@
 
 		<div class="controls-panel" class:open={controlsOpen}>
 			<div class="control-group">
-			<span class="control-label">
-				Mode
-				<span class="control-value">{mode}</span>
-			</span>
+				<span class="control-label">
+					Mode
+					<span class="control-value">{mode}</span>
+				</span>
 				<div class="mode-buttons">
 					<button
 						class="mode-btn"
@@ -470,7 +483,8 @@
 		outline-offset: 2px;
 	}
 
-	svg {
+	canvas {
+		display: block;
 		width: 100%;
 		height: 100%;
 	}
@@ -512,7 +526,9 @@
 		padding: 0;
 		max-height: 0;
 		overflow: hidden;
-		transition: max-height 0.3s ease, padding 0.3s ease;
+		transition:
+			max-height 0.3s ease,
+			padding 0.3s ease;
 	}
 
 	.controls-panel.open {

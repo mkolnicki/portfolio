@@ -1,0 +1,67 @@
+---
+title: "The Three Pillars of Cryptography"
+slug: "cryptography-fundamentals"
+date: "2026-03-14"
+excerpt: "Confidentiality, integrity, and authentication — the three fundamental properties that every secure communication system must address."
+featured: true
+readingMinutes: 5
+tags: ["cryptography", "security"]
+---
+
+<script>
+	import ConfidentialityDemo from '$lib/components/demos/ConfidentialityDemo.svelte';
+	import IntegrityDemo from '$lib/components/demos/IntegrityDemo.svelte';
+	import AuthenticationDemo from '$lib/components/demos/AuthenticationDemo.svelte';
+</script>
+
+At its core, cryptography is the science of secure communication. Consider a general issuing orders to his troops — detailing the time and location of an upcoming operation. The consequences of those orders falling into enemy hands would be grave. But secrecy alone is not enough. What if the enemy intercepted the message and subtly altered the details, sending the troops to the wrong location? Or what if the orders were forged entirely, the enemy masquerading as the general to lead the troops into a trap?
+
+Cryptography protects communication along three fundamental dimensions: **confidentiality**, **integrity**, and **authentication**.
+
+## Confidentiality
+
+**Confidentiality** is the most intuitive of the three. It ensures that a message can only be read by its intended recipient. When our general sends orders to his troops, confidentiality is what prevents the enemy from intercepting and reading them.
+
+<ConfidentialityDemo />
+
+Alice and Bob share a key. The message travels across the channel in encrypted form — Eve can intercept it, but without the key, the ciphertext is meaningless to her.
+
+## Integrity
+
+**Integrity** ensures that a message has not been tampered with in transit. Even if an adversary cannot read an encrypted message, they might still attempt to alter it — flipping bits blindly in the hope of corrupting the command or manipulating its contents. Integrity mechanisms allow the recipient to detect any such tampering and reject the message if it has been changed.
+
+<IntegrityDemo />
+
+Click **TAMPER** to change three characters: DAWN → DUSK. The hash — a fixed-length fingerprint of the message — changes completely. This is the avalanche effect: any change to the input cascades unpredictably through the entire output.
+
+## Authentication
+
+**Authentication** addresses the question of identity: how do we know the message actually came from who it claims to? A message can be confidential and intact, yet still be a fabrication sent by a hostile party. Authentication gives the recipient confidence in the identity of the sender.
+
+<AuthenticationDemo />
+
+Alice can sign a message with her private key, producing a signature only she could have created. Anyone with her public key can verify it. An impostor — lacking Alice's key — cannot produce a valid signature. Verification fails.
+
+---
+
+Together, these three properties form the backbone of secure communication. Modern cryptographic systems are designed with all three in mind, because a failure in any one of them can be just as catastrophic as a failure in the others.
+
+---
+
+This post is the first in a series that will build a complete picture of how modern cryptography works in practice — from first principles all the way to the protocols securing your internet connection right now.
+
+We'll begin with **symmetric encryption**: the simplest form of cryptography, where the same key is used to both encrypt and decrypt a message. Starting from the elegantly simple XOR operation, we'll work our way up through stream ciphers to AES, one of the most widely used encryption algorithms in the world.
+
+From there, we'll examine **hashing and integrity** — a family of one-way functions that underpin much of what we trust online. We'll trace the evolution from the broken MD5 to the SHA family, and explore a counterintuitive truth: when it comes to hashing, speed is the enemy.
+
+Next, we'll tackle **asymmetric encryption**, where the single shared key gives way to a mathematically linked pair — one public, one private. We'll dig into the number theory behind RSA and see how a problem that is trivial in one direction can be computationally infeasible in reverse.
+
+That sets the stage for **Diffie-Hellman key exchange**, one of the most elegant ideas in all of cryptography: a method by which two parties who have never met can agree on a shared secret, even over a channel their adversary is actively watching.
+
+With encryption and key exchange in hand, we'll turn to **digital signatures and certificates** — the mechanisms that let us establish trust at scale. We'll explore how certificate authorities, public key infrastructure, and the X.509 standard form the chain of trust that authenticates nearly every secure connection on the internet.
+
+Finally, we'll put it all together by walking through a **TLS handshake** — the protocol that fires every time you visit an HTTPS website. By that point, every step of it should feel familiar.
+
+---
+
+Ready to dive into symmetric encryption?

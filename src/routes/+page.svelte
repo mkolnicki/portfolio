@@ -92,63 +92,118 @@
 		return () => mq.removeEventListener('change', onChange);
 	});
 
-	// Scroll handler for stacked sections
+	// Committed-transition carousel: scroll position is never modified.
+	// Scroll only determines which section is "committed" (an integer).
+	// Visuals are driven entirely by a lerp toward the committed state.
 	$effect(() => {
 		if (!browser || !stackEl || isMobile || sectionCount === 0) return;
 
-		let ticking = false;
+		let current: number[] = new Array(sectionCount).fill(0);
+		let committedSection = 0;
+		let inShowcase = false;
+		let rafId: number | null = null;
+		let animating = false;
+
+		function getTargets(): number[] {
+			return Array.from({ length: sectionCount }, (_, i) => (i < committedSection ? 1 : 0));
+		}
+
+		function tick() {
+			const targets = getTargets();
+			const ease = 0.05;
+			let settled = true;
+
+			for (let i = 0; i < sectionCount; i++) {
+				const diff = targets[i] - current[i];
+				if (Math.abs(diff) > 0.0005) {
+					current[i] += diff * ease;
+					settled = false;
+				} else {
+					current[i] = targets[i];
+				}
+			}
+
+			sectionProgress = [...current];
+			activeId = inShowcase ? allShowcaseItems[committedSection]?.slug ?? null : null;
+
+			if (!settled) {
+				rafId = requestAnimationFrame(tick);
+			} else {
+				animating = false;
+			}
+		}
+
+		function startLerp() {
+			if (!animating) {
+				animating = true;
+				rafId = requestAnimationFrame(tick);
+			}
+		}
 
 		function onScroll() {
-			if (ticking) return;
-			ticking = true;
-			requestAnimationFrame(() => {
-				if (!stackEl) {
-					ticking = false;
-					return;
+			if (!stackEl) return;
+			const viewportH = window.innerHeight;
+			const stackTop = stackEl.offsetTop;
+			const scrolled = window.scrollY - stackTop;
+
+			if (scrolled < 0) {
+				inShowcase = false;
+				if (committedSection !== 0) {
+					committedSection = 0;
+					startLerp();
+				} else if (activeId !== null) {
+					activeId = null;
 				}
+				return;
+			}
 
-				const stackRect = stackEl.getBoundingClientRect();
-				const viewportH = window.innerHeight;
-				// How far the top of the stack has scrolled past the top of the viewport
-				const scrolled = -stackRect.top;
-				const scrollPerSection = viewportH;
-				const totalScroll = sectionCount * scrollPerSection;
+			inShowcase = true;
 
-				const progresses: number[] = [];
-				let currentActiveId: string | null = null;
-
-				for (let i = 0; i < sectionCount; i++) {
-					const sectionStart = i * scrollPerSection;
-					const raw = (scrolled - sectionStart) / scrollPerSection;
-					const clamped = Math.max(0, Math.min(1, raw));
-					progresses.push(clamped);
-
-					// Active = currently most visible section
-					if (raw >= 0 && raw < 1) {
-						currentActiveId = allShowcaseItems[i].slug;
-					}
+			if (scrolled >= sectionCount * viewportH) {
+				const last = sectionCount - 1;
+				if (committedSection !== last) {
+					committedSection = last;
+					startLerp();
 				}
+				return;
+			}
 
-				// If we've scrolled past all sections, last one is active
-				if (scrolled >= totalScroll - scrollPerSection && sectionCount > 0) {
-					currentActiveId = allShowcaseItems[sectionCount - 1].slug;
-				}
+			const rawIndex = scrolled / viewportH;
+			// Commit forward at 30% into the scroll range, backward at 70%
+			const fraction = rawIndex - Math.floor(rawIndex);
+			const base = Math.floor(rawIndex);
+			const newCommitted = Math.max(
+				0,
+				Math.min(sectionCount - 1, fraction >= 0.3 ? base + 1 : base)
+			);
 
-				// If we haven't reached the stack yet, nothing active
-				if (scrolled < 0) {
-					currentActiveId = null;
-				}
-
-				sectionProgress = progresses;
-				activeId = currentActiveId;
-				ticking = false;
-			});
+			if (newCommitted !== committedSection) {
+				committedSection = newCommitted;
+				startLerp();
+			}
 		}
 
 		window.addEventListener('scroll', onScroll, { passive: true });
-		onScroll();
 
-		return () => window.removeEventListener('scroll', onScroll);
+		// Initialize without animation
+		if (stackEl) {
+			const scrolled = window.scrollY - stackEl.offsetTop;
+			inShowcase = scrolled >= 0;
+			if (scrolled >= 0 && scrolled < sectionCount * window.innerHeight) {
+				committedSection = Math.max(
+					0,
+					Math.min(sectionCount - 1, Math.round(scrolled / window.innerHeight))
+				);
+			}
+		}
+		current = [...getTargets()];
+		sectionProgress = [...current];
+		activeId = inShowcase ? allShowcaseItems[committedSection]?.slug ?? null : null;
+
+		return () => {
+			window.removeEventListener('scroll', onScroll);
+			if (rafId !== null) cancelAnimationFrame(rafId);
+		};
 	});
 </script>
 
@@ -181,7 +236,7 @@
 		<div
 			class="showcase-stack"
 			bind:this={stackEl}
-			style:height="{sectionCount * 100}vh"
+			style:height="{(sectionCount + 1) * 100}vh"
 		>
 			<div class="showcase-stack__viewport">
 				{#each allShowcaseItems as item, i (item.slug)}

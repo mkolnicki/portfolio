@@ -37,22 +37,22 @@
 		stacked = false
 	}: Props = $props();
 
-	// Carousel crossfade: each section stays fully visible for 70% of its scroll range,
-	// then a 30% crossfade transitions to the next section.
+	// Sequential carousel: current section exits fully, then next section enters.
+	// No overlapping content at any point.
 
-	// Exit: fully visible until progress 0.7, then fades out over 0.7→1.0
-	const exitOpacity = $derived(stacked ? Math.max(0, Math.min(1, (1 - progress) / 0.3)) : 1);
-	// Enter: fades in as the previous section's progress goes 0.7→1.0
+	// Exit: fully visible until progress 0.5, then fades out over 0.5→0.75
+	const exitOpacity = $derived(stacked ? Math.max(0, Math.min(1, (0.75 - progress) / 0.25)) : 1);
+	// Enter: fades in as the previous section's progress goes 0.75→1.0
 	const enterOpacity = $derived(
-		stacked && index > 0 ? Math.max(0, Math.min(1, (prevProgress - 0.7) / 0.3)) : 1
+		stacked && index > 0 ? Math.max(0, Math.min(1, (prevProgress - 0.75) / 0.25)) : 1
 	);
 	const opacity = $derived(Math.min(exitOpacity, enterOpacity));
 
-	// Subtle vertical shift only during the transition window
-	const exitY = $derived(stacked ? -Math.max(0, (progress - 0.7) / 0.3) * 30 : 0);
+	// Subtle vertical shift matched to each phase
+	const exitY = $derived(stacked ? -Math.max(0, (progress - 0.5) / 0.25) * 30 : 0);
 	const enterY = $derived(
 		stacked && index > 0
-			? Math.max(0, 1 - Math.max(0, (prevProgress - 0.7) / 0.3)) * 30
+			? Math.max(0, 1 - Math.max(0, (prevProgress - 0.75) / 0.25)) * 30
 			: 0
 	);
 	const translateY = $derived(exitY + enterY);

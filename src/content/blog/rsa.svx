@@ -1,0 +1,85 @@
+---
+title: "The Lock Anyone Can Close"
+slug: "rsa"
+date: "2026-04-11"
+excerpt: "RSA, public keys, and the strange mathematics of a one-way door."
+featured: true
+readingMinutes: 8
+tags: ["cryptography", "security"]
+---
+
+<script>
+	import RSAKeyDemo from '$lib/components/demos/RSAKeyDemo.svelte';
+</script>
+
+We've been assuming the general and commander already share a secret. That assumption has done a lot of work for us. Symmetric encryption is fast and strong, but it requires both parties to agree on a key before they can communicate — and that agreement has to happen through some channel the enemy can't observe. For two commanders who met last week, that's fine. For two strangers who have never met, who want to communicate privately over a network where everything is visible to everyone, it's a serious problem.
+
+The problem has a name: **key distribution**. And for most of cryptography's history, no one had a satisfying answer. Then, in the 1970s, a small group of mathematicians found one — and it required rethinking what encryption even means.
+
+---
+
+## A different kind of lock
+
+Here's an analogy. Suppose you want anyone in the world to be able to send you a secret message, without having agreed on anything beforehand. You manufacture thousands of padlocks, leave them open, and scatter them around the world. Anyone who wants to send you a message puts it in a box, snaps one of your padlocks shut, and sends the box. Only you have the key. Anyone can lock; only you can unlock.
+
+This is the intuition behind **asymmetric encryption** — also called **public-key cryptography**. Instead of one shared secret, each party holds two related keys: a **public key**, which they broadcast freely, and a **private key**, which they never share with anyone. A message encrypted with the public key can only be decrypted with the corresponding private key. The two keys are mathematically linked, but knowing one doesn't let you derive the other — at least not in any practical amount of time.
+
+The first practical system to achieve this was **RSA**, named after its inventors: Ron Rivest, Adi Shamir, and Leonard Adleman, who published it in 1977. (It was independently discovered a few years earlier by Clifford Cocks at GCHQ, who was not permitted to publish.) RSA's security rests on a specific mathematical problem — one that's easy to pose and, as far as anyone knows, very hard to solve.
+
+---
+
+## The mathematical trapdoor
+
+Take two large prime numbers — call them p and q. Multiply them together: n = p × q. Now forget p and q.
+
+Given n, can you recover p and q?
+
+This is called **integer factorization**, and the answer is: yes, eventually, but for large enough n, "eventually" means longer than the age of the universe. Multiplying is easy; factoring is hard. This asymmetry between a cheap forward operation and an expensive reverse operation is what cryptographers call a **trapdoor function** — easy to fall through in one direction, almost impossible to climb back up.
+
+RSA is built on this trapdoor. Here's how the keys are constructed.
+
+Choose p and q — large primes, typically hundreds of digits long. Compute n = p × q, called the **modulus**. Compute φ(n) = (p − 1)(q − 1), which counts how many integers less than n share no factors with it. Choose a number e — typically 65537 — that shares no factors with φ(n). This gives you the **public key**: the pair (n, e).
+
+Now compute d such that e × d ≡ 1 mod φ(n). This d is the **private key**. Finding d requires knowing φ(n), which requires knowing p and q, which requires factoring n. Destroy p and q, and d becomes computationally inaccessible to anyone who doesn't already have it.
+
+Encryption is then elegant. To encrypt a message M, the sender computes:
+
+```
+C = Mᵉ mod n
+```
+
+To decrypt, the recipient computes:
+
+```
+M = Cᵈ mod n
+```
+
+The mathematics guarantees that these two operations are inverses. The exponentiation is fast. Running it backwards without d is, as far as we know, equivalent to factoring n — which for a 2048-bit modulus means a number with roughly 600 decimal digits.
+
+<RSAKeyDemo />
+
+Pick a prime pair to step through the key construction, then switch to the encryption tab to see the round trip. Real RSA uses primes hundreds of digits long; the structure is identical.
+
+---
+
+## What "mod" is doing
+
+If you haven't seen modular arithmetic, it's worth pausing on. Mod n means: divide by n and take the remainder. Clock arithmetic works this way — 10 hours after 5 o'clock is 3, not 15, because we wrap around at 12. In RSA, all arithmetic happens in this wrapped world. The numbers never grow beyond n, which makes computation tractable. And the wrapping is what makes the function one-way: you lose information when you mod, in a way that makes reversal hard.
+
+The specific guarantee RSA exploits comes from a theorem by Euler, which says that for any M with no common factor with n: M^(φ(n)) ≡ 1 mod n. This is what makes encryption and decryption mutual inverses — the exponents e and d are chosen precisely so that e × d is 1 more than a multiple of φ(n), which collapses the round trip back to M.
+
+---
+
+## Practical RSA and its limits
+
+In practice, RSA is almost never used to encrypt the actual message. It's slow — several orders of magnitude slower than AES — and it can only encrypt data smaller than the modulus. What it's used for instead is encrypting a key.
+
+The typical flow is a **hybrid scheme**: generate a fresh symmetric key for this session, encrypt that key with the recipient's RSA public key, send it over. The recipient decrypts it with their private key and now both parties share a symmetric key no one else has seen. From that point on, the actual communication uses AES. RSA handles the key distribution problem; AES handles everything else.
+
+This is still how TLS works in legacy configurations, and it illustrates the proper role of public-key cryptography: not a replacement for symmetric encryption, but a tool for bootstrapping the shared secret that symmetric encryption requires.
+
+---
+
+## The weakness to watch
+
+RSA's security assumption — that factoring large numbers is hard — has held for fifty years, but it's not guaranteed to hold forever. In 1994, Peter Shor published an algorithm that would factor large numbers efficiently on a quantum computer. No quantum computer capable of running Shor's algorithm at RSA-relevant scales exists today, but the possibility has driven significant investment in **post-quantum cryptography** — new algorithms whose hardness assumptions don't crumble against quantum attacks. NIST finalized the first post-quantum standards in 2024. RSA is not yet broken; it is on notice.
