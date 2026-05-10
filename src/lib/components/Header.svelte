@@ -4,7 +4,8 @@
 	const links = [
 		{ href: '/', label: 'Home' },
 		{ href: '/projects', label: 'Projects' },
-		{ href: '/blog', label: 'Blog' }
+		{ href: '/blog', label: 'Blog' },
+		{ href: '/about', label: 'About' }
 	];
 
 	let scrollY = $state(0);
@@ -40,7 +41,7 @@
 					</li>
 				{/each}
 			</ul>
-			<a href="mailto:hello@matthewkolnicki.com" class="header__cta">Get in Touch</a>
+			<a href="mailto:mattkolnicki@gmail.com" class="header__cta">Get in Touch</a>
 		</nav>
 	</div>
 </header>

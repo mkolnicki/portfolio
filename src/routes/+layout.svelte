@@ -57,9 +57,21 @@
 		position: fixed;
 		inset: 0;
 		background: var(--bg-noise);
-		opacity: 0.03;
+		opacity: 0.3;
 		pointer-events: none;
 		z-index: 100;
+	}
+
+	.app::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+		background-size: 32px 32px;
+		pointer-events: none;
+		z-index: 100;
+		mask-image: radial-gradient(ellipse at center, black 0%, transparent 75%);
+		-webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 75%);
 	}
 
 	.main {

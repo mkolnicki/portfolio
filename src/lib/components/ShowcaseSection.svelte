@@ -10,16 +10,6 @@
 		href: string;
 		linkLabel?: string;
 		demo: Snippet<[boolean]>;
-		/** 0–1 progress through this section's scroll range */
-		progress?: number;
-		/** 0–1 progress of the previous section (drives enter animation) */
-		prevProgress?: number;
-		/** Index in the stack (drives z-index) */
-		index?: number;
-		/** Total number of stacked sections */
-		sectionCount?: number;
-		/** Whether we're in stacked (desktop) mode */
-		stacked?: boolean;
 	}
 
 	const {
@@ -29,98 +19,33 @@
 		tags,
 		href,
 		linkLabel = 'View project',
-		demo,
-		progress = 0,
-		prevProgress = 0,
-		index = 0,
-		sectionCount = 1,
-		stacked = false
+		demo
 	}: Props = $props();
-
-	// Sequential carousel: current section exits fully, then next section enters.
-	// No overlapping content at any point.
-
-	// Exit: fully visible until progress 0.5, then fades out over 0.5→0.75
-	const exitOpacity = $derived(stacked ? Math.max(0, Math.min(1, (0.75 - progress) / 0.25)) : 1);
-	// Enter: fades in as the previous section's progress goes 0.75→1.0
-	const enterOpacity = $derived(
-		stacked && index > 0 ? Math.max(0, Math.min(1, (prevProgress - 0.75) / 0.25)) : 1
-	);
-	const opacity = $derived(Math.min(exitOpacity, enterOpacity));
-
-	// Subtle vertical shift matched to each phase
-	const exitY = $derived(stacked ? -Math.max(0, (progress - 0.5) / 0.25) * 30 : 0);
-	const enterY = $derived(
-		stacked && index > 0
-			? Math.max(0, 1 - Math.max(0, (prevProgress - 0.75) / 0.25)) * 30
-			: 0
-	);
-	const translateY = $derived(exitY + enterY);
-
-	const active = $derived(stacked ? opacity > 0.1 : true);
-	const visible = $derived(stacked ? opacity > 0.01 : true);
 </script>
 
-{#if stacked}
-	<div
-		class="showcase-card"
-		style:opacity={opacity}
-		style:transform="translateY({translateY}px)"
-		style:visibility={visible ? 'visible' : 'hidden'}
-		style:pointer-events={active ? 'auto' : 'none'}
-	>
-		<div class="showcase container" {id}>
-			<div class="showcase__demo">
-				{@render demo(active)}
+<div class="showcase-section" {id}>
+	<div class="showcase container">
+		<div class="showcase__demo">
+			{@render demo(true)}
+		</div>
+		<div class="showcase__meta" use:reveal>
+			<div class="showcase__tags">
+				{#each tags as tag (tag)}
+					<span class="tag">{tag}</span>
+				{/each}
 			</div>
-			<div class="showcase__meta" use:reveal>
-				<div class="showcase__tags">
-					{#each tags as tag (tag)}
-						<span class="tag">{tag}</span>
-					{/each}
-				</div>
-				<h3 class="showcase__title">{title}</h3>
-				<p class="showcase__excerpt">{excerpt}</p>
-				<a class="showcase__link" {href}>
-					{linkLabel}
-					<span aria-hidden="true">&rarr;</span>
-				</a>
-			</div>
+			<h3 class="showcase__title">{title}</h3>
+			<p class="showcase__excerpt">{excerpt}</p>
+			<a class="showcase__link" {href}>
+				{linkLabel}
+				<span aria-hidden="true">&rarr;</span>
+			</a>
 		</div>
 	</div>
-{:else}
-	<div class="mobile-section" {id}>
-		<div class="showcase container">
-			<div class="showcase__demo">
-				{@render demo(active)}
-			</div>
-			<div class="showcase__meta" use:reveal>
-				<div class="showcase__tags">
-					{#each tags as tag (tag)}
-						<span class="tag">{tag}</span>
-					{/each}
-				</div>
-				<h3 class="showcase__title">{title}</h3>
-				<p class="showcase__excerpt">{excerpt}</p>
-				<a class="showcase__link" {href}>
-					{linkLabel}
-					<span aria-hidden="true">&rarr;</span>
-				</a>
-			</div>
-		</div>
-	</div>
-{/if}
+</div>
 
 <style>
-	.showcase-card {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		will-change: opacity, transform;
-	}
-
-	.mobile-section {
+	.showcase-section {
 		position: relative;
 		padding: 3rem 0;
 	}
