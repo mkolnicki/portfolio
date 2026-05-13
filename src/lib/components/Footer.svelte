@@ -18,9 +18,9 @@
 			<div class="footer__column">
 				<h4 class="footer__heading">Connect</h4>
 				<ul class="footer__links">
-					<li><a href="https://github.com/matthewkolnicki" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-					<li><a href="https://linkedin.com/in/matthewkolnicki" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-					<li><a href="https://x.com/matthewkolnicki" target="_blank" rel="noopener noreferrer">X</a></li>
+					<li><a href="https://github.com/mkolnicki" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+					<li><a href="https://linkedin.com/in/mattkolnicki" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+					<li><a href="https://x.com/mattkolnicki" target="_blank" rel="noopener noreferrer">X</a></li>
 				</ul>
 			</div>
 		</div>

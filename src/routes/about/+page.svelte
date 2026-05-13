@@ -3,7 +3,7 @@
 	import { reveal } from '$lib/actions/reveal';
 </script>
 
-<Seo title="About" description="Software engineer working at the intersection of AI and modern web development." />
+<Seo title="About" description="Software engineer working on cybersecurity, privacy, and open source software." />
 
 <section class="about-hero">
 	<div class="about-hero__inner container">
@@ -12,9 +12,6 @@
 			<span class="about-hero__line">I automate the</span>
 			<span class="about-hero__line about-hero__line--accent">annoying sh*t.</span>
 		</h1>
-		<p class="about-hero__tagline" use:reveal={{ delay: 250, distance: '20px' }}>
-			Building human-centric software.
-		</p>
 	</div>
 </section>
 
@@ -22,18 +19,11 @@
 	<div class="about-grid">
 		<div class="about-grid__sticky" use:reveal={{ delay: 0, distance: '20px' }}>
 			<h2 class="about-section__heading">Background</h2>
-			<p class="about-section__subtext">How I got here, and what drives the work.</p>
 		</div>
 		<div class="about-grid__content">
 			<div class="about-text" use:reveal={{ delay: 100, distance: '20px' }}>
 				<p>
-					Software development was never an inherent passion of mine, despite my Pre-K superlative: “Most Likely to Work with Computers.” However, I've always been deeply interested in technology. I first wrote code to automate the repetitive tasks I frequently ran into: downloading favorited photos off my camera, creating my own sunrise lamp before I knew it was a thing so every morning alarm was a bit less jarring, and generally caring about the ways that software can subtly improve my life.
-				</p>
-				<p>
-					I think it is far easier to find solutions for your own problems than it is for someone else's, but our problems are seldom unique. The more code I write, the more I search for tools that make writing code easier. Luckily, there are so many like-minded developers that there are near-endless options to choose from for your IDE, LSP, linters, formatters, etc. I would naturally gravitate towards developer tools if there weren't already such great options out there that satisfy my needs.
-				</p>
-				<p>
-					Therefore, I've turned my attention back towards my own everyday problems that the layman also faces. If you see any projects from me in the near future, they'll likely fall into one of these categories: privacy, security, or software affordability.
+					Once software development clicked for me, I never looked back. I love to automate complex and repetitive tasks: the kind of work that's painful to do by hand but satisfying to engineer away. Over time, that instinct has shaped how I approach everything from building internal tools to customer-facing platforms.
 				</p>
 			</div>
 		</div>
